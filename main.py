@@ -427,7 +427,18 @@ def root():
                         </button>
                     </div>
 
-                    <div class="bg-white rounded-3xl crm-shadow border border-white overflow-hidden">
+                    <div class="bg-white rounded-3xl crm-shadow border border-white overflow-hidden mb-8">
+                        <div class="p-6 border-b border-slate-50 flex items-center gap-4 bg-slate-50/30">
+                            <div class="relative flex-1">
+                                <i class="fas fa-search absolute left-5 top-1/2 -translate-y-1/2 text-slate-300"></i>
+                                <input type="text" id="crm-search" placeholder="Buscar por nombre o teléfono..." 
+                                    class="w-full bg-white border border-slate-100 rounded-2xl pl-12 pr-6 py-4 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition outline-none"
+                                    oninput="filterCRMLeads()">
+                            </div>
+                            <div class="text-slate-400 text-xs font-bold px-4">
+                                <span id="crm-count-visible">0</span> / <span id="crm-count-total">0</span> leads
+                            </div>
+                        </div>
                         <table class="w-full text-left">
                             <thead class="bg-slate-50 border-b border-slate-100">
                                 <tr>
@@ -710,8 +721,24 @@ def root():
             async function loadCRMLeads() {
                 const res = await fetch('/api/conversations', { headers: { 'Authorization': 'Bearer ' + auth_token }});
                 crmLeads = await res.json();
+                renderCRMTable(crmLeads);
+            }
+
+            function filterCRMLeads() {
+                const query = document.getElementById('crm-search').value.toLowerCase().trim();
+                const filtered = crmLeads.filter(l => {
+                    const name = (l.user || "").toLowerCase();
+                    const phone = (l.phone || l.id || "").toLowerCase();
+                    return name.includes(query) || phone.includes(query);
+                });
+                renderCRMTable(filtered);
+            }
+
+            function renderCRMTable(leads) {
+                document.getElementById('crm-count-visible').innerText = leads.length;
+                document.getElementById('crm-count-total').innerText = crmLeads.length;
                 
-                document.getElementById('crm-table-body').innerHTML = crmLeads.map(l => {
+                document.getElementById('crm-table-body').innerHTML = leads.map(l => {
                     const displayName = l.user || l.phone || 'Usuario Sin Nombre';
                     const displayPhone = l.phone || l.id || 'N/A';
                     const waLink = `https://wa.me/${displayPhone.replace(/[^0-9]/g, '')}`;
