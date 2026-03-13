@@ -532,13 +532,14 @@ def root():
             let crmLeads = []; // Global storage for CRM leads
 
             // --- NAVEGACION ---
-            function showView(viewId) {
+            function showView(viewId, skipLoad = false) {
                 document.querySelectorAll('main').forEach(v => v.classList.add('view-hidden'));
                 document.getElementById('view-' + viewId).classList.remove('view-hidden');
                 
                 document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
                 document.getElementById('nav-' + viewId).classList.add('active');
 
+                if (skipLoad) return;
                 if (viewId === 'conversations') loadConversations();
                 if (viewId === 'crm') loadCRMLeads();
                 if (viewId === 'operators') loadOperators();
@@ -618,7 +619,7 @@ def root():
             }
 
             async function selectChat(id, name, phone, tagsStr) {
-                showView('view-conversations');
+                showView('conversations', true); // Cambia a vista chat sin recargar la lista de conversaciones
                 activeUserId = id;
                 activeUserPhone = phone;
                 lastMsgCount = 0;
