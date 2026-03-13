@@ -435,6 +435,14 @@ def root():
                                     class="w-full bg-white border border-slate-100 rounded-2xl pl-12 pr-6 py-4 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition outline-none"
                                     oninput="filterCRMLeads()">
                             </div>
+                            <select id="crm-filter-status" onchange="filterCRMLeads()" 
+                                class="bg-white border border-slate-100 rounded-2xl px-4 py-4 text-sm font-bold text-slate-600 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition outline-none shadow-sm">
+                                <option value="all">TODOS LOS ESTADOS</option>
+                                <option value="No Contactado">NO CONTACTADO</option>
+                                <option value="Contactado">CONTACTADO</option>
+                                <option value="Interesado">INTERESADO</option>
+                                <option value="Vendido">VENDIDO</option>
+                            </select>
                             <div class="text-slate-400 text-xs font-bold px-4">
                                 <span id="crm-count-visible">0</span> / <span id="crm-count-total">0</span> leads
                             </div>
@@ -726,10 +734,17 @@ def root():
 
             function filterCRMLeads() {
                 const query = document.getElementById('crm-search').value.toLowerCase().trim();
+                const statusFilter = document.getElementById('crm-filter-status').value;
+
                 const filtered = crmLeads.filter(l => {
                     const name = (l.user || "").toLowerCase();
                     const phone = (l.phone || l.id || "").toLowerCase();
-                    return name.includes(query) || phone.includes(query);
+                    const status = l.status || "No Contactado";
+                    
+                    const matchesSearch = name.includes(query) || phone.includes(query);
+                    const matchesStatus = statusFilter === 'all' || status === statusFilter;
+                    
+                    return matchesSearch && matchesStatus;
                 });
                 renderCRMTable(filtered);
             }
