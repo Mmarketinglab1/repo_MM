@@ -618,6 +618,7 @@ def root():
             }
 
             async function selectChat(id, name, phone, tagsStr) {
+                showView('view-conversations');
                 activeUserId = id;
                 activeUserPhone = phone;
                 lastMsgCount = 0;
