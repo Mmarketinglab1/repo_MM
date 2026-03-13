@@ -307,65 +307,100 @@ def root():
         <script src="https://cdn.tailwindcss.com"></script>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
         <style>
-            .crm-shadow { box-shadow: 0 4px 25px -5px rgba(0,0,0,0.1); }
-            .nav-item.active { border-bottom: 3px solid #2563eb; color: #2563eb; }
-            ::-webkit-scrollbar { width: 6px; }
-            ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+            :root {
+                --zoho-sidebar: #1E2235;
+                --zoho-bg: #F4F7FB;
+                --zoho-border: #E2E8F0;
+                --zoho-blue: #1D4ED8;
+                --zoho-text: #334155;
+            }
+            body { font-family: 'Inter', sans-serif; background-color: var(--zoho-bg); color: var(--zoho-text); }
+            .sidebar-item { transition: all 0.2s; border-left: 4px solid transparent; }
+            .sidebar-item.active { background: rgba(255,255,255,0.05); border-left-color: var(--zoho-blue); color: white !important; }
+            .zoho-card { background: white; border: 1px solid var(--zoho-border); overflow: hidden; }
             .view-hidden { display: none !important; }
+            ::-webkit-scrollbar { width: 5px; height: 5px; }
+            ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+            .btn-zoho { font-weight: 600; transition: all 0.2s; display: inline-flex; items-center: center; gap: 0.5rem; }
+            .btn-zoho:active { transform: scale(0.98); }
+            table thead th { background: #F8FAFC; color: #64748B; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--zoho-border); }
+            table tbody tr:last-child { border-bottom: none; }
         </style>
     </head>
-    <body class="bg-[#f8fafc] h-screen flex flex-col font-sans text-slate-700">
+    <body class="h-screen flex text-slate-700">
         
         <!-- PANTALLA DE LOGIN -->
-        <div id="login-screen" class="flex-1 flex items-center justify-center">
-            <div class="w-full max-w-md bg-white p-10 rounded-3xl crm-shadow border border-white">
+        <div id="login-screen" class="flex-1 flex items-center justify-center p-6 bg-slate-50">
+            <div class="w-full max-w-sm bg-white p-8 rounded border border-slate-200 shadow-sm">
                 <div class="text-center mb-8">
-                    <img src="/static/logo-mmarketing%20iso.png" alt="Logo" class="w-20 mx-auto mb-4">
-                    <h2 class="text-2xl font-black text-slate-800">Famiglia Viajes CRM</h2>
-                    <p class="text-slate-400 text-sm mt-1">Ingresa tus credenciales de operador</p>
+                    <img src="/static/logo-mmarketing%20iso.png" alt="Logo" class="w-12 mx-auto mb-4 grayscale opacity-80">
+                    <h2 class="text-xl font-bold text-slate-800">Acceso al Sistema</h2>
+                    <p class="text-slate-400 text-xs mt-1">LiveChat & CRM Corporativo</p>
                 </div>
-                <div class="space-y-4">
+                <div class="space-y-5">
                     <div>
-                        <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Usuario</label>
-                        <input type="text" id="login-user" class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 outline-none focus:ring-2 focus:ring-blue-500/20 transition" placeholder="Admin">
+                        <label class="text-[10px] font-bold uppercase text-slate-500 mb-1.5 block">Usuario</label>
+                        <input type="text" id="login-user" class="w-full bg-white border border-slate-200 rounded px-4 py-3 text-sm outline-none focus:border-blue-500 transition-colors" placeholder="nombre.apellido">
                     </div>
                     <div>
-                        <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Contraseña</label>
-                        <input type="password" id="login-pass" class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 outline-none focus:ring-2 focus:ring-blue-500/20 transition" placeholder="••••••••">
+                        <label class="text-[10px] font-bold uppercase text-slate-500 mb-1.5 block">Contraseña</label>
+                        <input type="password" id="login-pass" class="w-full bg-white border border-slate-200 rounded px-4 py-3 text-sm outline-none focus:border-blue-500 transition-colors" placeholder="••••••••">
                     </div>
-                    <button onclick="doLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-xl shadow-blue-200 transition-all transform active:scale-95">
-                        Entrar al Sistema
+                    <button onclick="doLogin()" class="w-full bg-[#1D4ED8] hover:bg-blue-700 text-white font-bold py-3 rounded text-sm transition-all shadow-lg shadow-blue-500/20 active:scale-[0.98]">
+                        Iniciar Sesión
                     </button>
-                    <p id="login-error" class="text-red-500 text-xs text-center mt-4 hidden"></p>
+                    <p id="login-error" class="text-red-500 text-[10px] text-center mt-4 hidden font-medium"></p>
                 </div>
             </div>
         </div>
 
-        <!-- APP PRINCIPAL (OCULTA INICIALMENTE) -->
-        <div id="app-screen" class="view-hidden h-screen flex flex-col">
+        <!-- APP PRINCIPAL -->
+        <div id="app-screen" class="view-hidden flex-1 flex overflow-hidden">
             
-            <header class="bg-white px-8 py-4 flex justify-between items-center crm-shadow border-b border-slate-100 sticky top-0 z-50">
-                <div class="flex items-center gap-8">
-                    <div class="flex items-center gap-3">
-                        <img src="/static/logo-mmarketing%20iso.png" alt="Logo" class="w-10">
-                        <span class="font-black text-lg tracking-tighter">LiveChat <span class="text-blue-600">Pro</span></span>
-                    </div>
-                    <nav class="flex gap-8">
-                        <button onclick="showView('conversations')" class="nav-item active px-2 py-2 text-sm font-bold transition-all text-slate-400 hover:text-slate-600" id="nav-conversations">Conversaciones</button>
-                        <button onclick="showView('crm')" class="nav-item px-2 py-2 text-sm font-bold transition-all text-slate-400 hover:text-slate-600" id="nav-crm">CRM Leads</button>
-                        <button onclick="showView('operators')" class="nav-item px-2 py-2 text-sm font-bold transition-all text-slate-400 hover:text-slate-600" id="nav-operators">Operadores</button>
-                    </nav>
+            <!-- SIDEBAR BARRA LATERAL -->
+            <aside class="w-64 bg-[#1E2235] flex flex-col shrink-0 z-50">
+                <div class="p-6 border-b border-white/5 flex items-center gap-3">
+                    <img src="/static/logo-mmarketing%20iso.png" alt="Logo" class="w-8 brightness-0 invert">
+                    <span class="font-black text-white text-lg tracking-tight">LiveChat<span class="text-blue-400">Pro</span></span>
                 </div>
-                <div class="flex items-center gap-6">
-                    <div class="text-right">
-                        <p class="text-sm font-bold text-slate-800" id="me-name">---</p>
-                        <p class="text-[9px] text-slate-400 uppercase font-black" id="me-role">Cargando...</p>
-                    </div>
-                    <button onclick="doLogout()" class="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 hover:bg-red-50 hover:text-red-500 transition">
-                        <i class="fas fa-sign-out-alt"></i>
+
+                <nav class="flex-1 py-6">
+                    <button onclick="showView('conversations')" id="nav-conversations" class="sidebar-item active w-full flex items-center gap-4 px-6 py-4 text-slate-400 font-semibold hover:text-white hover:bg-white/5 text-sm">
+                        <i class="fas fa-comments w-5"></i> Conversaciones
                     </button>
+                    <button onclick="showView('crm')" id="nav-crm" class="sidebar-item w-full flex items-center gap-4 px-6 py-4 text-slate-400 font-semibold hover:text-white hover:bg-white/5 text-sm">
+                        <i class="fas fa-users w-5"></i> CRM Leads
+                    </button>
+                    <button onclick="showView('operators')" id="nav-operators" class="sidebar-item w-full flex items-center gap-4 px-6 py-4 text-slate-400 font-semibold hover:text-white hover:bg-white/5 text-sm">
+                        <i class="fas fa-shield-alt w-5"></i> Operadores
+                    </button>
+                </nav>
+
+                <div class="p-6 border-t border-white/5 bg-black/20">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-900/40" id="me-avatar">A</div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-bold text-white truncate" id="me-name">---</p>
+                            <p class="text-[9px] text-slate-500 font-black uppercase tracking-wider" id="me-role">---</p>
+                        </div>
+                        <button onclick="doLogout()" class="text-slate-500 hover:text-red-400 transition">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
+                    </div>
                 </div>
-            </header>
+            </aside>
+
+            <!-- CONTENIDO DERECHA -->
+            <div class="flex-1 flex flex-col min-w-0">
+                <header class="bg-white border-b border-slate-200 h-16 flex items-center px-8 shrink-0 relative">
+                    <h2 id="view-title" class="text-sm font-black text-slate-400 uppercase tracking-widest">Conversaciones</h2>
+                    <div class="ml-auto flex items-center gap-4">
+                        <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                            <i class="fas fa-bell text-xs"></i>
+                        </div>
+                    </div>
+                </header>
 
             <!-- VISTA CONVERSACIONES (CHAT) -->
             <main id="view-conversations" class="flex-1 flex overflow-hidden p-6 gap-6">
@@ -620,17 +655,15 @@ def root():
                 const data = await res.json();
                 document.getElementById('stat-total-users').innerText = data.length;
                 document.getElementById('user-list').innerHTML = data.map(c => `
-                    <div onclick="selectChat('${c.id}', '${c.user}', '${c.phone}', '${c.tags || ''}')" class="p-6 border-b border-slate-50 cursor-pointer hover:bg-slate-50 transition-all flex items-center gap-4 ${activeUserId === c.id ? 'bg-blue-50 border-r-4 border-r-blue-600' : ''}">
-                        <div class="w-12 h-12 rounded-full border-2 border-white shadow-sm flex items-center justify-center bg-slate-200 overflow-hidden shrink-0">
-                            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(c.user)}&background=random" class="w-full h-full">
+                    <div onclick="selectChat('${c.id}', '${c.user}', '${c.phone}', '${c.tags || ''}')" class="px-6 py-4 border-b border-slate-100 cursor-pointer hover:bg-slate-50 transition-all flex items-center gap-3 ${activeUserId === c.id ? 'bg-blue-50/50 border-r-2 border-r-blue-600' : ''}">
+                        <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-xs border border-slate-200 shrink-0 overflow-hidden">
+                            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(c.user)}&background=F1F5F9&color=64748B&size=128" class="w-full h-full">
                         </div>
                         <div class="flex-1 min-w-0">
-                            <div class="flex justify-between">
-                                <p class="font-black text-sm text-slate-800 truncate">${c.user}</p>
-                            </div>
-                            <p class="text-[10px] text-blue-500 font-bold">${c.phone}</p>
+                            <p class="font-bold text-sm text-slate-800 truncate">${c.user}</p>
+                            <p class="text-[10px] text-slate-500 font-medium">${c.phone}</p>
                             <div class="flex gap-1 mt-1 truncate">
-                                ${c.tags ? c.tags.split(',').map(t => `<span class="bg-indigo-50 text-indigo-400 text-[8px] font-black px-1.5 py-0.5 rounded uppercase">${t}</span>`).join('') : ''}
+                                ${c.tags ? c.tags.split(',').map(t => `<span class="bg-slate-100 text-slate-400 text-[8px] font-bold px-1.5 py-0.5 rounded border border-slate-200 uppercase">${t}</span>`).join('') : ''}
                             </div>
                         </div>
                     </div>
@@ -695,12 +728,15 @@ def root():
                 
                 window.innerHTML = messages.map(m => {
                     const isSelf = m.from === 'bot' || m.from === 'human';
+                    const bubbleClass = isSelf ? 'bg-blue-600 text-white border-blue-700' : 'bg-white text-slate-700 border-slate-200';
+                    const senderLabel = m.from === 'human' ? 'Operador' : (m.from === 'bot' ? 'Asistente IA' : 'Cliente');
+                    
                     return `
-                    <div class="flex flex-col ${isSelf ? 'items-end' : 'items-start'} mb-2">
-                        <div class="${isSelf ? 'bg-blue-600 text-white shadow-lg shadow-blue-100' : 'bg-white text-slate-700 border border-slate-50'} p-4 rounded-3xl max-w-lg text-sm">
+                    <div class="flex flex-col ${isSelf ? 'items-end' : 'items-start'} mb-4">
+                        <div class="${bubbleClass} border px-4 py-2.5 rounded-2xl max-w-[80%] text-sm leading-relaxed shadow-sm">
                             ${m.text}
                         </div>
-                        <span class="text-[9px] text-slate-300 mt-1 mx-2 uppercase font-black">${m.from === 'human' ? 'Operador' : (m.from === 'bot' ? 'Asistente IA' : 'Cliente')}</span>
+                        <span class="text-[9px] text-slate-400 mt-1 mx-2 font-bold uppercase tracking-wider">${senderLabel}</span>
                     </div>
                     `;
                 }).join('');
@@ -758,46 +794,58 @@ def root():
                     const displayPhone = l.phone || l.id || 'N/A';
                     const waLink = `https://wa.me/${displayPhone.replace(/[^0-9]/g, '')}`;
                     
+                    // Status Badge Logic
+                    const statusColors = {
+                        'No Contactado': 'bg-slate-100 text-slate-500 border-slate-200',
+                        'Contactado': 'bg-blue-50 text-blue-600 border-blue-100',
+                        'Interesado': 'bg-indigo-50 text-indigo-600 border-indigo-100',
+                        'Vendido': 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                    };
+                    const statusClass = statusColors[l.status] || statusColors['No Contactado'];
+
                     return `
-                    <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition">
-                        <td class="p-6">
+                    <tr class="border-b border-slate-100 hover:bg-slate-50/50 transition-colors group">
+                        <td class="px-6 py-4">
                             <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[10px] shadow-sm">${displayName.charAt(0).toUpperCase()}</div>
-                                <div>
-                                    <span class="font-bold text-slate-800 block">${displayName}</span>
-                                    <span class="text-[10px] text-slate-400">${l.email || 'Sin email'}</span>
+                                <div class="w-8 h-8 rounded bg-slate-100 text-slate-400 flex items-center justify-center font-bold text-[10px] border border-slate-200">${displayName.charAt(0).toUpperCase()}</div>
+                                <div class="min-w-0">
+                                    <span class="font-semibold text-slate-800 block text-sm truncate">${displayName}</span>
+                                    <span class="text-[10px] text-slate-400 truncate block">${l.email || 'Sin email'}</span>
                                 </div>
                             </div>
                         </td>
-                        <td class="p-6">
+                        <td class="px-6 py-4">
                             <div class="flex flex-col">
-                                <span class="text-xs text-slate-700 font-mono font-bold">${displayPhone}</span>
-                                <span class="text-[9px] text-slate-400 truncate max-w-[150px]">${l.address || 'Sin dirección'}</span>
+                                <span class="text-xs text-slate-600 font-medium">${displayPhone}</span>
+                                <span class="text-[10px] text-slate-400 truncate max-w-[120px]">${l.address || 'Sin dirección'}</span>
                             </div>
                         </td>
-                        <td class="p-6">
-                            <select onchange="updateLeadStatus('${l.id}', this.value)" class="text-[10px] font-black px-3 py-1.5 rounded-xl border border-slate-100 outline-none bg-white shadow-sm focus:ring-2 focus:ring-blue-500/10">
-                                <option value="No Contactado" ${l.status === 'No Contactado' ? 'selected' : ''}>NO CONTACTADO</option>
-                                <option value="Contactado" ${l.status === 'Contactado' ? 'selected' : ''}>CONTACTADO</option>
-                                <option value="Interesado" ${l.status === 'Interesado' ? 'selected' : ''}>INTERESADO</option>
-                                <option value="Vendido" ${l.status === 'Vendido' ? 'selected' : ''}>VENDIDO</option>
-                            </select>
+                        <td class="px-6 py-4">
+                            <div class="relative inline-block text-[10px]">
+                                <select onchange="updateLeadStatus('${l.id}', this.value)" 
+                                    class="appearance-none font-bold px-3 py-1 rounded border outline-none bg-white transition-all cursor-pointer ${statusClass}">
+                                    <option value="No Contactado" ${l.status === 'No Contactado' ? 'selected' : ''}>NO CONTACTADO</option>
+                                    <option value="Contactado" ${l.status === 'Contactado' ? 'selected' : ''}>CONTACTADO</option>
+                                    <option value="Interesado" ${l.status === 'Interesado' ? 'selected' : ''}>INTERESADO</option>
+                                    <option value="Vendido" ${l.status === 'Vendido' ? 'selected' : ''}>VENDIDO</option>
+                                </select>
+                            </div>
                         </td>
-                        <td class="p-6">
+                        <td class="px-6 py-4">
                             <div class="flex gap-1 flex-wrap max-w-[150px]">
-                                ${l.tags ? l.tags.split(',').map(t => `<span class="bg-indigo-50 text-indigo-500 text-[8px] font-black px-2 py-0.5 rounded-full uppercase border border-indigo-100">${t}</span>`).join('') : '<span class="text-slate-300 text-[10px]">Sin etiquetas</span>'}
+                                ${l.tags ? l.tags.split(',').map(t => `<span class="bg-slate-50 text-slate-400 text-[9px] font-bold px-2 py-0.5 rounded border border-slate-100 uppercase">${t}</span>`).join('') : '<span class="text-slate-300 text-[10px]">Sin etiquetas</span>'}
                             </div>
                         </td>
-                        <td class="p-6 text-right">
-                             <div class="flex justify-end gap-2">
-                                <a href="${waLink}" target="_blank" class="text-emerald-500 hover:bg-emerald-50 w-9 h-9 flex items-center justify-center rounded-xl transition border border-emerald-50" title="WhatsApp Web">
-                                    <i class="fab fa-whatsapp text-lg"></i>
+                        <td class="px-6 py-4 text-right">
+                             <div class="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <a href="${waLink}" target="_blank" class="w-8 h-8 flex items-center justify-center rounded text-emerald-500 hover:bg-emerald-50 border border-transparent hover:border-emerald-100 transition-all" title="WhatsApp">
+                                    <i class="fab fa-whatsapp"></i>
                                 </a>
-                                <button onclick="openEditLeadModal('${l.id}')" class="text-slate-400 hover:text-blue-600 hover:bg-blue-50 w-9 h-9 flex items-center justify-center rounded-xl transition border border-slate-100" title="Editar">
-                                    <i class="fas fa-edit"></i>
+                                <button onclick="openEditLeadModal('${l.id}')" class="w-8 h-8 flex items-center justify-center rounded text-slate-400 hover:text-blue-600 hover:bg-blue-50 border border-transparent hover:border-blue-100 transition-all" title="Editar">
+                                    <i class="fas fa-pencil-alt text-xs"></i>
                                 </button>
-                                <button onclick="selectChat('${l.id}', '${displayName}', '${displayPhone}', '${l.tags || ''}')" class="text-blue-600 hover:bg-blue-600 hover:text-white w-9 h-9 flex items-center justify-center rounded-xl transition border border-blue-100" title="Ver Chat">
-                                    <i class="fas fa-comment"></i>
+                                <button onclick="selectChat('${l.id}', '${displayName}', '${displayPhone}', '${l.tags || ''}')" class="w-8 h-8 flex items-center justify-center rounded text-blue-600 hover:bg-blue-600 hover:text-white border border-transparent transition-all" title="Chat">
+                                    <i class="fas fa-comment-dots text-xs"></i>
                                 </button>
                              </div>
                         </td>
@@ -818,12 +866,12 @@ def root():
                 const res = await fetch('/api/operators', { headers: { 'Authorization': 'Bearer ' + auth_token }});
                 const data = await res.json();
                 document.getElementById('operators-list').innerHTML = data.map(o => `
-                    <div class="bg-white p-6 rounded-3xl border border-white crm-shadow flex items-center justify-between">
-                         <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 rounded-full bg-slate-800 text-white flex items-center justify-center font-black">${o.username.charAt(0).toUpperCase()}</div>
+                    <div class="bg-white p-5 rounded border border-slate-200 flex items-center justify-between hover:border-slate-300 transition-colors">
+                         <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded bg-[#1E2235] text-white flex items-center justify-center font-bold text-xs">${o.username.charAt(0).toUpperCase()}</div>
                             <div>
-                                <h4 class="font-black text-slate-800">${o.full_name}</h4>
-                                <p class="text-xs text-slate-400 font-bold uppercase tracking-widest">${o.username} • ${o.role}</p>
+                                <h4 class="font-bold text-slate-800 text-sm">${o.full_name}</h4>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">${o.username} • ${o.role}</p>
                             </div>
                          </div>
                     </div>
