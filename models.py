@@ -8,7 +8,10 @@ class User(Base):
     full_name = Column(String)
     phone = Column(String)
     tags = Column(String, default="") # Etiquetas de CRM
-    crm_status = Column(String, default="No Contactado") # Nuevo: Estado de CRM
+    crm_status = Column(String, default="No Contactado") # Estado de CRM
+    email = Column(String) # Nuevo
+    address = Column(String) # Nuevo
+    observations = Column(Text) # Nuevo
     created_at = Column(TIMESTAMP, server_default=func.now())
 
 class Operator(Base):

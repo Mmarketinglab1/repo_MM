@@ -77,6 +77,18 @@ class LeadCreateSchema(BaseModel):
     phone: str
     tags: Optional[str] = ""
     crm_status: Optional[str] = "No Contactado"
+    email: Optional[str] = None
+    address: Optional[str] = None
+    observations: Optional[str] = None
+
+class LeadUpdateSchema(BaseModel):
+    full_name: Optional[str] = None
+    phone: Optional[str] = None
+    tags: Optional[str] = None
+    crm_status: Optional[str] = None
+    email: Optional[str] = None
+    address: Optional[str] = None
+    observations: Optional[str] = None
 
 class TagUpdateSchema(BaseModel):
     tags: str
@@ -178,7 +190,16 @@ def receive_bot_msg(msg: MessageSchema, db: Session = Depends(get_db)):
 @app.get("/api/conversations")
 def get_conversations(db: Session = Depends(get_db), current: models.Operator = Depends(get_current_operator)):
     users = db.query(models.User).order_by(models.User.created_at.desc()).all()
-    return [{"id": u.id, "user": u.full_name, "phone": u.phone, "tags": u.tags, "status": u.crm_status} for u in users]
+    return [{
+        "id": u.id, 
+        "user": u.full_name, 
+        "phone": u.phone, 
+        "tags": u.tags, 
+        "status": u.crm_status,
+        "email": u.email,
+        "address": u.address,
+        "observations": u.observations
+    } for u in users]
 
 @app.get("/api/messages/{user_id}")
 def get_messages(user_id: str, db: Session = Depends(get_db), current: models.Operator = Depends(get_current_operator)):
@@ -196,11 +217,29 @@ async def create_lead(lead: LeadCreateSchema, db: Session = Depends(get_db), cur
         full_name=lead.full_name,
         phone=lead.phone,
         tags=lead.tags,
-        crm_status=lead.crm_status
+        crm_status=lead.crm_status,
+        email=lead.email,
+        address=lead.address,
+        observations=lead.observations
     )
     db.add(new_lead)
     db.commit()
-    return {"status": "ok"}
+    db.refresh(new_lead)
+    return new_lead
+
+@app.put("/api/leads/{user_id}")
+async def update_lead(user_id: str, lead: LeadUpdateSchema, db: Session = Depends(get_db), current: models.Operator = Depends(get_current_operator)):
+    db_lead = db.query(models.User).filter(models.User.id == user_id).first()
+    if not db_lead:
+        raise HTTPException(status_code=404, detail="Lead no encontrado")
+    
+    update_data = lead.dict(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_lead, key, value)
+    
+    db.commit()
+    db.refresh(db_lead)
+    return db_lead
 
 @app.post("/api/users/{user_id}/status")
 def update_user_status(user_id: str, status_data: StatusUpdateSchema, db: Session = Depends(get_db), current: models.Operator = Depends(get_current_operator)):
@@ -427,20 +466,44 @@ def root():
         <div id="modal-container" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center view-hidden">
             <!-- Modal Lead -->
             <div id="modal-lead" class="w-full max-w-lg bg-white rounded-3xl p-10 crm-shadow view-hidden">
-                <h2 class="text-2xl font-black mb-6">Crear Nuevo Lead</h2>
-                <div class="space-y-4">
-                    <input type="text" id="lead-name" placeholder="Nombre completo" class="w-full bg-slate-50 p-4 rounded-2xl outline-none">
-                    <input type="text" id="lead-phone" placeholder="Teléfono (ej: 549341...)" class="w-full bg-slate-50 p-4 rounded-2xl outline-none">
-                    <select id="lead-status" class="w-full bg-slate-50 p-4 rounded-2xl outline-none">
-                        <option value="No Contactado">No Contactado</option>
-                        <option value="Contactado">Contactado</option>
-                        <option value="Interesado">Interesado</option>
-                        <option value="Vendido">Vendido</option>
-                    </select>
+                <h2 id="modal-lead-title" class="text-2xl font-black mb-6">Crear Nuevo Lead</h2>
+                <input type="hidden" id="edit-lead-id">
+                <div class="space-y-4 max-h-[60vh] overflow-y-auto px-1">
+                    <div>
+                        <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Nombre Completo</label>
+                        <input type="text" id="lead-name" placeholder="Ej: Juan Pérez" class="w-full bg-slate-50 p-4 rounded-2xl outline-none border border-slate-100 focus:border-blue-500 transition">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Teléfono (WhatsApp ID)</label>
+                        <input type="text" id="lead-phone" placeholder="Ej: 549341123456" class="w-full bg-slate-50 p-4 rounded-2xl outline-none border border-slate-100 focus:border-blue-500 transition">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Email</label>
+                            <input type="email" id="lead-email" placeholder="mail@ejemplo.com" class="w-full bg-slate-50 p-4 rounded-2xl outline-none border border-slate-100 focus:border-blue-500 transition">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Estado</label>
+                            <select id="lead-status" class="w-full bg-slate-50 p-4 rounded-2xl outline-none border border-slate-100 focus:border-blue-500 transition">
+                                <option value="No Contactado">No Contactado</option>
+                                <option value="Contactado">Contactado</option>
+                                <option value="Interesado">Interesado</option>
+                                <option value="Vendido">Vendido</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Dirección</label>
+                        <input type="text" id="lead-address" placeholder="Ej: Calle Falsa 123" class="w-full bg-slate-50 p-4 rounded-2xl outline-none border border-slate-100 focus:border-blue-500 transition">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Observaciones</label>
+                        <textarea id="lead-observations" placeholder="Notas sobre el cliente..." class="w-full bg-slate-50 p-4 rounded-2xl outline-none border border-slate-100 focus:border-blue-500 transition h-24"></textarea>
+                    </div>
                 </div>
                 <div class="flex gap-4 mt-8">
-                    <button onclick="closeModal()" class="flex-1 bg-slate-100 py-4 rounded-2xl font-bold text-slate-600">Cancelar</button>
-                    <button onclick="saveLead()" class="flex-1 bg-blue-600 py-4 rounded-2xl font-bold text-white shadow-lg shadow-blue-100">Guardar Lead</button>
+                    <button onclick="closeModal()" class="flex-1 bg-slate-100 py-4 rounded-2xl font-bold text-slate-600 hover:bg-slate-200 transition">Cancelar</button>
+                    <button onclick="saveLead()" class="flex-1 bg-blue-600 py-4 rounded-2xl font-bold text-white shadow-lg shadow-blue-100 hover:bg-blue-700 transition">Guardar Lead</button>
                 </div>
             </div>
             
@@ -466,6 +529,7 @@ def root():
             let activeUserPhone = null;
             let currentTags = [];
             let lastMsgCount = 0;
+            let crmLeads = []; // Global storage for CRM leads
 
             // --- NAVEGACION ---
             function showView(viewId) {
@@ -643,34 +707,58 @@ def root():
             // --- CRM ---
             async function loadCRMLeads() {
                 const res = await fetch('/api/conversations', { headers: { 'Authorization': 'Bearer ' + auth_token }});
-                const data = await res.json();
-                document.getElementById('crm-table-body').innerHTML = data.map(l => `
-                    <tr class="border-b border-slate-50 hover:bg-slate-50 transition">
+                crmLeads = await res.json();
+                
+                document.getElementById('crm-table-body').innerHTML = crmLeads.map(l => {
+                    const displayName = l.user || l.phone || 'Usuario Sin Nombre';
+                    const displayPhone = l.phone || l.id || 'N/A';
+                    const waLink = `https://wa.me/${displayPhone.replace(/[^0-9]/g, '')}`;
+                    
+                    return `
+                    <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition">
                         <td class="p-6">
                             <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-400 text-xs">${l.user.charAt(0)}</div>
-                                <span class="font-bold text-slate-800">${l.user}</span>
+                                <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[10px] shadow-sm">${displayName.charAt(0).toUpperCase()}</div>
+                                <div>
+                                    <span class="font-bold text-slate-800 block">${displayName}</span>
+                                    <span class="text-[10px] text-slate-400">${l.email || 'Sin email'}</span>
+                                </div>
                             </div>
                         </td>
-                        <td class="p-6 text-sm text-slate-500 font-mono">${l.phone}</td>
                         <td class="p-6">
-                            <select onchange="updateLeadStatus('${l.id}', this.value)" class="text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-100 outline-none">
-                                <option value="No Contactado" ${l.status === 'No Contactado' ? 'selected' : ''}>No Contactado</option>
-                                <option value="Contactado" ${l.status === 'Contactado' ? 'selected' : ''}>Contactado</option>
-                                <option value="Interesado" ${l.status === 'Interesado' ? 'selected' : ''}>Interesado</option>
-                                <option value="Vendido" ${l.status === 'Vendido' ? 'selected' : ''}>Vendido</option>
+                            <div class="flex flex-col">
+                                <span class="text-xs text-slate-700 font-mono font-bold">${displayPhone}</span>
+                                <span class="text-[9px] text-slate-400 truncate max-w-[150px]">${l.address || 'Sin dirección'}</span>
+                            </div>
+                        </td>
+                        <td class="p-6">
+                            <select onchange="updateLeadStatus('${l.id}', this.value)" class="text-[10px] font-black px-3 py-1.5 rounded-xl border border-slate-100 outline-none bg-white shadow-sm focus:ring-2 focus:ring-blue-500/10">
+                                <option value="No Contactado" ${l.status === 'No Contactado' ? 'selected' : ''}>NO CONTACTADO</option>
+                                <option value="Contactado" ${l.status === 'Contactado' ? 'selected' : ''}>CONTACTADO</option>
+                                <option value="Interesado" ${l.status === 'Interesado' ? 'selected' : ''}>INTERESADO</option>
+                                <option value="Vendido" ${l.status === 'Vendido' ? 'selected' : ''}>VENDIDO</option>
                             </select>
                         </td>
                         <td class="p-6">
-                            <div class="flex gap-1 flex-wrap">
-                                ${l.tags ? l.tags.split(',').map(t => `<span class="bg-indigo-50 text-indigo-500 text-[9px] font-black px-2 py-0.5 rounded-full uppercase">${t}</span>`).join('') : '<span class="text-slate-200 text-xs">Sin tags</span>'}
+                            <div class="flex gap-1 flex-wrap max-w-[150px]">
+                                ${l.tags ? l.tags.split(',').map(t => `<span class="bg-indigo-50 text-indigo-500 text-[8px] font-black px-2 py-0.5 rounded-full uppercase border border-indigo-100">${t}</span>`).join('') : '<span class="text-slate-300 text-[10px]">Sin etiquetas</span>'}
                             </div>
                         </td>
                         <td class="p-6 text-right">
-                             <button onclick="selectChat('${l.id}', '${l.user}', '${l.phone}', '${l.tags}')" class="text-blue-600 hover:bg-blue-50 w-8 h-8 rounded-lg transition"><i class="fas fa-comment"></i></button>
+                             <div class="flex justify-end gap-2">
+                                <a href="${waLink}" target="_blank" class="text-emerald-500 hover:bg-emerald-50 w-9 h-9 flex items-center justify-center rounded-xl transition border border-emerald-50" title="WhatsApp Web">
+                                    <i class="fab fa-whatsapp text-lg"></i>
+                                </a>
+                                <button onclick="openEditLeadModal('${l.id}')" class="text-slate-400 hover:text-blue-600 hover:bg-blue-50 w-9 h-9 flex items-center justify-center rounded-xl transition border border-slate-100" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="selectChat('${l.id}', '${displayName}', '${displayPhone}', '${l.tags || ''}')" class="text-blue-600 hover:bg-blue-600 hover:text-white w-9 h-9 flex items-center justify-center rounded-xl transition border border-blue-100" title="Ver Chat">
+                                    <i class="fas fa-comment"></i>
+                                </button>
+                             </div>
                         </td>
                     </tr>
-                `).join('');
+                `; }).join('');
             }
 
             async function updateLeadStatus(id, newStatus) {
@@ -699,14 +787,39 @@ def root():
             }
 
             // --- MODALES OPS ---
-            function openNewLeadModal() { 
+              function openNewLeadModal() { 
+                document.getElementById('modal-lead-title').innerText = "Crear Nuevo Lead";
+                document.getElementById('edit-lead-id').value = "";
+                document.getElementById('lead-name').value = "";
+                document.getElementById('lead-phone').value = "";
+                document.getElementById('lead-phone').disabled = false;
+                document.getElementById('lead-email').value = "";
+                document.getElementById('lead-address').value = "";
+                document.getElementById('lead-observations').value = "";
+                document.getElementById('lead-status').value = "No Contactado";
+                
                 document.getElementById('modal-container').classList.remove('view-hidden');
                 document.getElementById('modal-lead').classList.remove('view-hidden');
             }
-            function openNewOpModal() {
-                 document.getElementById('modal-container').classList.remove('view-hidden');
-                 document.getElementById('modal-operator').classList.remove('view-hidden');
+
+            function openEditLeadModal(leadId) {
+                const lead = crmLeads.find(l => l.id === leadId);
+                if (!lead) return;
+
+                document.getElementById('modal-lead-title').innerText = "Editar Lead";
+                document.getElementById('edit-lead-id').value = lead.id;
+                document.getElementById('lead-name').value = lead.user || "";
+                document.getElementById('lead-phone').value = lead.phone || lead.id || "";
+                document.getElementById('lead-phone').disabled = true; 
+                document.getElementById('lead-email').value = lead.email || "";
+                document.getElementById('lead-address').value = lead.address || "";
+                document.getElementById('lead-observations').value = lead.observations || "";
+                document.getElementById('lead-status').value = lead.status;
+
+                document.getElementById('modal-container').classList.remove('view-hidden');
+                document.getElementById('modal-lead').classList.remove('view-hidden');
             }
+
             function closeModal() {
                 document.getElementById('modal-container').classList.add('view-hidden');
                 document.getElementById('modal-lead').classList.add('view-hidden');
@@ -714,18 +827,54 @@ def root():
             }
 
             async function saveLead() {
+                const editId = document.getElementById('edit-lead-id').value;
                 const name = document.getElementById('lead-name').value;
                 const phone = document.getElementById('lead-phone').value;
+                const email = document.getElementById('lead-email').value;
+                const address = document.getElementById('lead-address').value;
+                const observations = document.getElementById('lead-observations').value;
                 const statusValue = document.getElementById('lead-status').value;
-                if (!name || !phone) return;
 
-                const res = await fetch('/api/leads', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + auth_token },
-                    body: JSON.stringify({ id: phone, full_name: name, phone: phone, crm_status: statusValue })
-                });
-                if (res.ok) { closeModal(); loadCRMLeads(); }
-                else { alert("Error: El lead ya existe o hubo un problema."); }
+                if (!name || !phone) {
+                    alert("Nombre y teléfono son obligatorios");
+                    return;
+                }
+
+                const payload = {
+                    full_name: name,
+                    phone: phone,
+                    email: email,
+                    address: address,
+                    observations: observations,
+                    crm_status: statusValue
+                };
+
+                let res;
+                if (editId) {
+                    // Update
+                    res = await fetch('/api/leads/' + editId, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + auth_token },
+                        body: JSON.stringify(payload)
+                    });
+                } else {
+                    // Create
+                    payload.id = phone;
+                    res = await fetch('/api/leads', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + auth_token },
+                        body: JSON.stringify(payload)
+                    });
+                }
+
+                if (res.ok) { 
+                    closeModal(); 
+                    loadCRMLeads(); 
+                    if (activeUserId === editId) loadConversations();
+                } else { 
+                    const err = await res.json();
+                    alert("Error: " + (err.detail || "No se pudo guardar el lead")); 
+                }
             }
 
             async function saveOperator() {
