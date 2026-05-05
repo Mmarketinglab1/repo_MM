@@ -1,0 +1,356 @@
+﻿[
+    {
+        "id":  "11",
+        "number":  "10",
+        "category":  "Escalera",
+        "capacity":  "2pax",
+        "prices":  {
+                       "nightly":  0,
+                       "weekend":  0.0,
+                       "january_week":  2436525,
+                       "february_week":  2243150,
+                       "promo":  0
+                   },
+        "occupied":  [
+                         {
+                             "from":  "2025-12-04",
+                             "to":  "2025-12-09"
+                         },
+                         {
+                             "from":  "2026-03-27",
+                             "to":  "2026-03-29"
+                         },
+                         {
+                             "from":  "2025-08-04",
+                             "to":  "2025-08-10"
+                         },
+                         {
+                             "from":  "2026-08-04",
+                             "to":  "2026-08-10"
+                         },
+                         {
+                             "from":  "2026-04-12",
+                             "to":  "2026-04-16"
+                         }
+                     ]
+    },
+    {
+        "id":  "6",
+        "number":  "22",
+        "category":  "Duplex",
+        "capacity":  "5/6pax",
+        "prices":  {
+                       "nightly":  0,
+                       "weekend":  0.0,
+                       "january_week":  3749713,
+                       "february_week":  3452117,
+                       "promo":  0
+                   },
+        "occupied":  [
+                         {
+                             "from":  "2026-01-07",
+                             "to":  "2026-01-14"
+                         },
+                         {
+                             "from":  "2025-12-05",
+                             "to":  "2025-12-07"
+                         },
+                         {
+                             "from":  "2026-03-29",
+                             "to":  "2026-03-31"
+                         }
+                     ]
+    },
+    {
+        "id":  "10",
+        "number":  "26",
+        "category":  "Triplex",
+        "capacity":  "TX6pax",
+        "prices":  {
+                       "nightly":  0,
+                       "weekend":  0.0,
+                       "january_week":  3974696,
+                       "february_week":  3659244,
+                       "promo":  0
+                   },
+        "occupied":  [
+
+                     ]
+    },
+    {
+        "id":  "1",
+        "number":  "11",
+        "category":  "Marina",
+        "capacity":  "4pax",
+        "prices":  {
+                       "nightly":  0,
+                       "weekend":  0.0,
+                       "january_week":  2970124,
+                       "february_week":  2734400,
+                       "promo":  0
+                   },
+        "occupied":  [
+                         {
+                             "from":  "2026-03-22",
+                             "to":  "2026-03-26"
+                         },
+                         {
+                             "from":  "2026-03-24",
+                             "to":  "2026-03-26"
+                         },
+                         {
+                             "from":  "2026-03-24",
+                             "to":  "2026-03-26"
+                         },
+                         {
+                             "from":  "2026-03-24",
+                             "to":  "2026-03-26"
+                         },
+                         {
+                             "from":  "2026-03-24",
+                             "to":  "2026-03-26"
+                         },
+                         {
+                             "from":  "2026-03-24",
+                             "to":  "2026-03-26"
+                         },
+                         {
+                             "from":  "2026-03-24",
+                             "to":  "2026-03-26"
+                         },
+                         {
+                             "from":  "2026-03-24",
+                             "to":  "2026-03-26"
+                         },
+                         {
+                             "from":  "2026-03-24",
+                             "to":  "2026-03-26"
+                         },
+                         {
+                             "from":  "2026-03-24",
+                             "to":  "2026-03-26"
+                         },
+                         {
+                             "from":  "2026-03-24",
+                             "to":  "2026-03-26"
+                         },
+                         {
+                             "from":  "2026-03-24",
+                             "to":  "2026-03-26"
+                         },
+                         {
+                             "from":  "2026-03-24",
+                             "to":  "2026-03-26"
+                         }
+                     ]
+    },
+    {
+        "id":  "2",
+        "number":  "12",
+        "category":  "Marina",
+        "capacity":  "5 pax",
+        "prices":  {
+                       "nightly":  0,
+                       "weekend":  0.0,
+                       "january_week":  3148331,
+                       "february_week":  2898464,
+                       "promo":  0
+                   },
+        "occupied":  [
+                         {
+                             "from":  "2026-03-24",
+                             "to":  "2026-03-26"
+                         },
+                         {
+                             "from":  "2026-03-22",
+                             "to":  "2026-03-24"
+                         }
+                     ]
+    },
+    {
+        "id":  "3",
+        "number":  "13",
+        "category":  "Marina",
+        "capacity":  "5 pax",
+        "prices":  {
+                       "nightly":  0,
+                       "weekend":  0.0,
+                       "january_week":  3148331,
+                       "february_week":  2898464,
+                       "promo":  1
+                   },
+        "occupied":  [
+                         {
+                             "from":  "2025-12-04",
+                             "to":  "2025-12-09"
+                         }
+                     ]
+    },
+    {
+        "id":  "4",
+        "number":  "14",
+        "category":  "Marina",
+        "capacity":  "4pax",
+        "prices":  {
+                       "nightly":  0,
+                       "weekend":  0.0,
+                       "january_week":  2970124,
+                       "february_week":  2734400,
+                       "promo":  0
+                   },
+        "occupied":  [
+                         {
+                             "from":  "2026-03-27",
+                             "to":  "2026-03-29"
+                         }
+                     ]
+    },
+    {
+        "id":  "13",
+        "number":  "15",
+        "category":  "Barlovento",
+        "capacity":  "3 pax",
+        "prices":  {
+                       "nightly":  0,
+                       "weekend":  0.0,
+                       "january_week":  2582717,
+                       "february_week":  2459730,
+                       "promo":  0
+                   },
+        "occupied":  [
+                         {
+                             "from":  "2025-12-02",
+                             "to":  "2025-12-07"
+                         },
+                         {
+                             "from":  "2026-03-26",
+                             "to":  "2026-03-30"
+                         }
+                     ]
+    },
+    {
+        "id":  "5",
+        "number":  "21",
+        "category":  "Triplex",
+        "capacity":  "TX5pax",
+        "prices":  {
+                       "nightly":  0,
+                       "weekend":  300000,
+                       "january_week":  3974696,
+                       "february_week":  3659244,
+                       "promo":  0
+                   },
+        "occupied":  [
+                         {
+                             "from":  "2025-12-13",
+                             "to":  "2025-12-16"
+                         },
+                         {
+                             "from":  "2025-12-29",
+                             "to":  "2026-01-02"
+                         },
+                         {
+                             "from":  "2026-01-12",
+                             "to":  "2026-01-19"
+                         },
+                         {
+                             "from":  "2026-03-30",
+                             "to":  "2026-04-05"
+                         },
+                         {
+                             "from":  "2026-03-30",
+                             "to":  "2026-04-05"
+                         }
+                     ]
+    },
+    {
+        "id":  "7",
+        "number":  "23",
+        "category":  "Duplex",
+        "capacity":  "4pax",
+        "prices":  {
+                       "nightly":  0,
+                       "weekend":  0.0,
+                       "january_week":  3537465,
+                       "february_week":  3256714,
+                       "promo":  0
+                   },
+        "occupied":  [
+
+                     ]
+    },
+    {
+        "id":  "8",
+        "number":  "24",
+        "category":  "Duplex",
+        "capacity":  "4pax",
+        "prices":  {
+                       "nightly":  0,
+                       "weekend":  0.0,
+                       "january_week":  3537465,
+                       "february_week":  3256714,
+                       "promo":  0
+                   },
+        "occupied":  [
+                         {
+                             "from":  "2026-01-13",
+                             "to":  "2026-01-20"
+                         },
+                         {
+                             "from":  "2025-12-08",
+                             "to":  "2025-12-15"
+                         }
+                     ]
+    },
+    {
+        "id":  "9",
+        "number":  "25",
+        "category":  "Duplex",
+        "capacity":  "5/6pax",
+        "prices":  {
+                       "nightly":  0,
+                       "weekend":  0.0,
+                       "january_week":  3749713,
+                       "february_week":  3452117,
+                       "promo":  0
+                   },
+        "occupied":  [
+
+                     ]
+    },
+    {
+        "id":  "14",
+        "number":  "31",
+        "category":  "Barlovento",
+        "capacity":  "5pax",
+        "prices":  {
+                       "nightly":  0,
+                       "weekend":  0.0,
+                       "january_week":  3337231,
+                       "february_week":  3072372,
+                       "promo":  0
+                   },
+        "occupied":  [
+
+                     ]
+    },
+    {
+        "id":  "12",
+        "number":  "32",
+        "category":  "Barlovento",
+        "capacity":  "",
+        "prices":  {
+                       "nightly":  0,
+                       "weekend":  0.0,
+                       "january_week":  3337231,
+                       "february_week":  3072372,
+                       "promo":  0
+                   },
+        "occupied":  [
+                         {
+                             "from":  "2026-03-20",
+                             "to":  "2026-03-28"
+                         }
+                     ]
+    }
+]

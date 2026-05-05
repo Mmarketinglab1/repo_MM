@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+env/
+.env
+
+# Database
+*.db
+
+# IDEs
+.vscode/
+.idea/
+.DS_Store
+
+# Large files
+*.log
+*.sqlite
+
+# Gcloud
+.gcloudignore

@@ -1,0 +1,3074 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Famiglia Viajes - LiveChat & CRM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+        :root {
+            --zoho-sidebar: #1E2235;
+            --zoho-bg: #F4F7FB;
+            --zoho-border: #E2E8F0;
+            --zoho-blue: #1D4ED8;
+            --zoho-text: #334155;
+        }
+        body { font-family: 'Inter', sans-serif; background-color: var(--zoho-bg); color: var(--zoho-text); }
+        .sidebar-item { transition: all 0.2s; border-left: 4px solid transparent; }
+        .sidebar-item.active { background: rgba(255,255,255,0.05); border-left-color: var(--zoho-blue); color: white !important; }
+        .zoho-card { background: white; border: 1px solid var(--zoho-border); overflow: hidden; }
+        .view-hidden { display: none !important; }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        
+        /* Caching/Purging Override: Classes estáticas a prueba de fallos para los estados */
+        .status-esperando { background-color: #f1f5f9 !important; color: #64748b !important; border-color: #e2e8f0 !important; }
+        .status-no-contactado { background-color: #fef2f2 !important; color: #dc2626 !important; border-color: #fecaca !important; }
+        .status-pendiente { background-color: #fffbeb !important; color: #d97706 !important; border-color: #fde68a !important; }
+        .status-no-contesto-wa { background-color: #f8fafc !important; color: #475569 !important; border-color: #e2e8f0 !important; }
+        .status-informar-estado { background-color: #eff6ff !important; color: #2563eb !important; border-color: #bfdbfe !important; }
+        .status-hablo-no-cerro { background-color: #faf5ff !important; color: #9333ea !important; border-color: #e9d5ff !important; }
+        .status-en-proceso { background-color: #eef2ff !important; color: #4f46e5 !important; border-color: #c7d2fe !important; }
+        .status-contactado { background-color: #f0fdf4 !important; color: #16a34a !important; border-color: #bbf7d0 !important; }
+        .status-interesado { background-color: #fff7ed !important; color: #ea580c !important; border-color: #fed7aa !important; }
+        .status-remarketing-0 { background-color: #fdf2f8 !important; color: #db2777 !important; border-color: #fbcfe8 !important; }
+        .status-remarketing-0-dark { background-color: #db2777 !important; color: white !important; }
+
+        .btn-zoho { font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.5rem; }
+        .btn-zoho:active { transform: scale(0.98); }
+        table thead th { background: #F8FAFC; color: #64748B; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--zoho-border); }
+        table tbody tr:last-child { border-bottom: none; }
+
+        /* Sticky Column Styles */
+        .sticky-col {
+            position: sticky;
+            right: 0;
+            background: white;
+            z-index: 10;
+        }
+        
+        thead th.sticky-col {
+            background: #F8FAFC;
+        }
+
+        tr:hover .sticky-col {
+            background: #f8fafc; /* Match group-hover color */
+        }
+
+        .sticky-col::before {
+            content: "";
+            position: absolute;
+            left: -1px;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: var(--zoho-border);
+            box-shadow: -2px 0 5px rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body class="h-screen flex text-slate-700">
+    
+    <!-- PANTALLA DE LOGIN -->
+    <div id="login-screen" class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-50 overflow-y-auto">
+        <div class="w-full max-w-sm bg-white p-8 rounded-2xl border border-slate-200 shadow-xl relative overflow-hidden transition-all duration-300 my-auto">
+            <!-- Formulario Iniciar Sesion -->
+            <div id="form-login" class="transition-all duration-300">
+                <div class="text-center mb-8">
+                    <img src="/static/logo-mmarketing%20iso.png" alt="Logo" class="w-12 mx-auto mb-4 grayscale opacity-80">
+                    <h2 class="text-xl font-black text-slate-800 tracking-tight">Acceso al Sistema</h2>
+                    <p class="text-slate-400 text-xs mt-1 font-semibold uppercase tracking-wider">LiveChat & CRM SaaS</p>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-[10px] font-bold uppercase text-slate-500 mb-1.5 block">Email Institucional</label>
+                        <input type="email" id="login-user" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:border-blue-500 transition-colors outline-none" placeholder="tu@email.com">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold uppercase text-slate-500 mb-1.5 block">Contraseña</label>
+                        <input type="password" id="login-pass" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:border-blue-500 transition-colors outline-none" placeholder="••••••••" onkeypress="if(event.key === 'Enter') doLogin()">
+                    </div>
+                    <button onclick="doLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 mt-2 rounded-xl text-sm transition-all shadow-lg shadow-blue-500/20 active:scale-[0.98]">
+                        Iniciar Sesión
+                    </button>
+                </div>
+                <div class="mt-6 text-center border-t border-slate-100 pt-6">
+                    <p class="text-xs text-slate-500 font-medium">¿Tu empresa no tiene cuenta?</p>
+                    <button onclick="toggleRegisterForm()" class="text-blue-600 font-bold text-xs mt-2 hover:underline">Registrar Empresa Nueva</button>
+                </div>
+            </div>
+
+            <!-- Formulario Registro Empresa -->
+            <div id="form-register" class="absolute inset-0 bg-white p-8 translate-x-full transition-transform duration-300 flex flex-col justify-center">
+                <div class="text-center mb-6">
+                    <h2 class="text-xl font-black text-slate-800 tracking-tight">Nueva Empresa</h2>
+                    <p class="text-slate-400 text-[10px] mt-1 font-bold uppercase tracking-widest">Crear Tenant</p>
+                </div>
+                <div class="space-y-3 flex-1 overflow-y-auto pr-2">
+                    <div>
+                        <label class="text-[9px] font-black uppercase text-slate-500 mb-1 block tracking-wider">Nombre Empresa</label>
+                        <input type="text" id="reg-company" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black uppercase text-slate-500 mb-1 block tracking-wider">Nombre Completo Admin</label>
+                        <input type="text" id="reg-fullname" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black uppercase text-slate-500 mb-1 block tracking-wider">Usuario Admin</label>
+                        <input type="text" id="reg-user" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black uppercase text-slate-500 mb-1 block tracking-wider">Contraseña Admin</label>
+                        <input type="password" id="reg-pass" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-blue-500">
+                    </div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-slate-100 space-y-2">
+                    <button onclick="doRegister()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl text-xs transition-all shadow-lg shadow-indigo-500/20 active:scale-[0.98]">Crear SaaS Tenant</button>
+                    <button onclick="toggleRegisterForm()" class="w-full text-slate-400 font-bold py-2 rounded-xl text-xs hover:bg-slate-50 transition-colors">Volver a Login</button>
+                </div>
+            </div>
+            
+            <p id="login-error" class="text-red-500 text-[10px] text-center mt-4 hidden font-black bg-red-50 py-2 rounded-lg"></p>
+        </div>
+    </div>
+
+    <!-- APP PRINCIPAL -->
+    <div id="app-screen" class="view-hidden flex-1 flex overflow-hidden">
+        <!-- Tailwind Safelist for Dynamic Status Colors -->
+        <div class="hidden bg-orange-50 text-orange-600 border-orange-200 bg-purple-50 text-purple-600 border-purple-200 bg-green-50 text-green-600 border-green-200 bg-blue-50 text-blue-600 border-blue-200 bg-red-50 text-red-600 border-red-200"></div>
+        
+        <!-- OVERLAY MÓVIL PARA SIDEBAR -->
+        <div id="mobile-overlay" class="fixed inset-0 bg-slate-900/60 z-40 hidden md:hidden" onclick="toggleSidebar()"></div>
+        
+        <!-- SIDEBAR BARRA LATERAL -->
+        <aside id="main-sidebar" class="fixed inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition duration-300 ease-in-out w-64 bg-[#1E2235] flex flex-col shrink-0 z-50">
+            <div class="p-6 border-b border-white/5 flex flex-col gap-4">
+                <div class="flex items-center gap-3">
+                    <span class="font-black text-white text-lg tracking-tight">LiveChat<span class="text-blue-400">Pro</span></span>
+                </div>
+                <!-- Logo de Empresa Dinámico -->
+                <div id="company-logo-container" class="hidden">
+                    <div class="h-px bg-white/5 w-full mb-6"></div>
+                    <div class="flex flex-col items-center gap-4 px-2 mb-2">
+                        <img id="sidebar-company-logo" src="" alt="Company Logo" class="max-h-24 max-w-full rounded-2xl object-contain shadow-2xl shadow-black/40">
+                        <span id="company-name-display" class="text-[11px] font-black text-slate-400 uppercase tracking-widest truncate w-full text-center">---</span>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="flex-1 py-6">
+                <button onclick="showView('conversations')" id="nav-conversations" class="sidebar-item active w-full flex items-center gap-4 px-6 py-4 text-slate-400 font-semibold hover:text-white hover:bg-white/5 text-sm">
+                    <i class="fas fa-comments w-5"></i> Conversaciones
+                </button>
+                <button onclick="showView('crm')" id="nav-crm" class="sidebar-item w-full flex items-center gap-4 px-6 py-4 text-slate-400 font-semibold hover:text-white hover:bg-white/5 text-sm">
+                    <i class="fas fa-users w-5"></i> CRM Leads
+                </button>
+                <button onclick="showView('remarketing')" id="nav-remarketing" class="sidebar-item w-full flex items-center gap-4 px-6 py-4 text-slate-400 font-semibold hover:text-white hover:bg-white/5 text-sm view-hidden">
+                    <i class="fas fa-bullhorn w-5"></i> Remarketing
+                </button>
+                <button onclick="showView('operators')" id="nav-operators" class="sidebar-item w-full flex items-center gap-4 px-6 py-4 text-slate-400 font-semibold hover:text-white hover:bg-white/5 text-sm view-hidden">
+                    <i class="fas fa-shield-alt w-5"></i> Operadores
+                </button>
+                <button onclick="showView('settings')" id="nav-settings" class="sidebar-item w-full flex items-center gap-4 px-6 py-4 text-slate-400 font-semibold hover:text-white hover:bg-white/5 text-sm view-hidden">
+                    <i class="fas fa-cog w-5"></i> Configuración
+                </button>
+                <button onclick="showView('stats')" id="nav-stats" class="sidebar-item w-full flex items-center gap-4 px-6 py-4 text-slate-400 font-semibold hover:text-white hover:bg-white/5 text-sm view-hidden">
+                    <i class="fas fa-chart-line w-5"></i> Estadísticas
+                </button>
+                <button onclick="showView('superadmin')" id="nav-superadmin" class="sidebar-item w-full flex items-center gap-4 px-6 py-4 text-slate-400 font-semibold hover:text-white hover:bg-white/5 text-sm view-hidden">
+                    <i class="fas fa-globe w-5"></i> Súper Admin
+                </button>
+            </nav>
+
+            <div class="p-6 border-t border-white/5 bg-black/20">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-900/40" id="me-avatar">A</div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs font-bold text-white truncate" id="me-name">---</p>
+                        <p class="text-[9px] text-slate-500 font-black uppercase tracking-wider" id="me-role">---</p>
+                    </div>
+                    <button onclick="doLogout()" class="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 flex items-center justify-center transition">
+                        <i class="fas fa-sign-out-alt text-xs"></i>
+                    </button>
+                </div>
+                <button onclick="doLogout()" class="w-full mt-4 py-2 border border-white/10 rounded-xl text-[9px] font-black uppercase text-slate-500 hover:text-white hover:bg-white/5 transition">
+                    Cerrar Sesión Global
+                </button>
+            </div>
+        </aside>
+
+        <!-- CONTENIDO DERECHA -->
+        <div class="flex-1 flex flex-col min-w-0 h-full relative">
+            
+            <!-- MOBILE HEADER -->
+            <header class="md:hidden bg-white border-b border-slate-200 h-16 flex items-center px-4 shrink-0 justify-between relative z-30">
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleSidebar()" class="w-10 h-10 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center hover:bg-slate-100 transition">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <span class="font-black text-slate-800 tracking-tight text-lg">LiveChat<span class="text-blue-600">Pro</span></span>
+                </div>
+                <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                    <i class="fas fa-bell text-xs"></i>
+                </div>
+            </header>
+
+            <!-- Banner Impersonación -->
+            <div id="impersonation-banner" class="bg-indigo-600 p-2 hidden shrink-0">
+                <div class="max-w-6xl mx-auto flex justify-between items-center px-6">
+                    <p class="text-[10px] font-black text-white uppercase tracking-widest">
+                        <i class="fas fa-eye mr-2"></i> Viendo como: <span id="impersonate-name" class="underline">---</span>
+                    </p>
+                    <button onclick="exitImpersonation()" class="text-white hover:text-indigo-200 transition text-[9px] font-black uppercase flex items-center gap-2">
+                        Salir de esta empresa <i class="fas fa-times-circle"></i>
+                    </button>
+                </div>
+            </div>
+
+            <header class="bg-white border-b border-slate-200 h-16 flex items-center px-8 shrink-0 relative">
+                <h2 id="view-title" class="text-sm font-black text-slate-400 uppercase tracking-widest">Conversaciones</h2>
+                <div class="ml-auto flex items-center gap-4">
+                    <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                        <i class="fas fa-bell text-xs"></i>
+                    </div>
+                </div>
+            </header>
+
+        <!-- VISTA CONVERSACIONES (CHAT) -->
+        <main id="view-conversations" class="flex-1 flex flex-col md:flex-row overflow-hidden p-0 md:p-6 gap-0 md:gap-6">
+            <!-- Lista Leads Izquierda -->
+            <div id="chat-list-container" class="w-full md:w-96 bg-white md:rounded-3xl border-0 md:border border-white md:crm-shadow flex flex-col overflow-hidden h-full shrink-0">
+                <div class="p-6 border-b flex justify-between items-center">
+                    <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest">Chat Activos</h3>
+                    <span id="stat-total-users" class="bg-blue-100 text-blue-600 text-[10px] font-black px-2 py-1 rounded-full">0</span>
+                </div>
+                <div id="user-list" class="overflow-y-auto flex-1"></div>
+            </div>
+
+            <!-- Ventana Chat Derecha -->
+            <div id="chat-window-container" class="hidden md:flex flex-1 flex-col bg-white md:rounded-3xl border-0 md:border border-white md:crm-shadow overflow-hidden relative h-full">
+                <div id="chat-header-info" class="p-4 md:p-6 border-b flex justify-between items-center bg-white/50 backdrop-blur-md sticky top-0 z-10 hidden">
+                    <div class="flex items-center">
+                        <button class="md:hidden mr-4 text-slate-400 hover:text-slate-600 transition p-2 -ml-2" onclick="closeMobileChat()" title="Volver">
+                            <i class="fas fa-arrow-left text-lg"></i>
+                        </button>
+                        <div>
+                            <h2 id="chat-title" class="text-lg md:text-xl font-black text-slate-800">Selecciona un Chat</h2>
+                            <div id="chat-meta" class="flex items-center gap-3 mt-1">
+                                <p id="chat-phone" class="text-xs text-blue-600 font-bold"></p>
+                                <div id="chat-tags-display" class="flex gap-1"></div>
+                            </div>
+                        </div>
+                    </div>
+                     <div class="flex gap-2 items-center">
+                          <div id="bot-status-badge" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-all duration-300">
+                              <i class="fas fa-robot"></i> <span id="bot-status-text">Bot</span>
+                          </div>
+                          <button id="btn-toggle-bot" onclick="toggleBotStatus()" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 transition" title="Cambiar estado del bot">
+                              <i class="fas fa-power-off"></i>
+                          </button>
+                          <button onclick="toggleTagInput()" class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-500 hover:bg-indigo-100 transition"><i class="fas fa-tag"></i></button>
+                     </div>
+                </div>
+                
+                <div id="tag-edit-panel" class="hidden p-4 bg-indigo-50 border-b border-indigo-100 flex items-center gap-3">
+                    <input type="text" id="new-tag-input" class="flex-1 bg-white border border-indigo-200 rounded-xl px-4 py-2 text-xs" placeholder="Nueva etiqueta...">
+                    <button onclick="addCurrentTag()" class="bg-indigo-600 text-white text-xs px-4 py-2 rounded-xl font-bold">Agregar</button>
+                </div>
+
+                <div id="chat-window" class="flex-1 p-4 md:p-8 overflow-y-auto space-y-4 md:space-y-6 bg-[#fcfdff]">
+                    <div class="flex flex-col items-center justify-center h-full text-slate-300">
+                         <i class="fas fa-comments text-6xl mb-4"></i>
+                         <p class="font-bold">Selecciona una conversación para empezar</p>
+                    </div>
+                </div>
+
+                <div id="chat-input-area" class="bg-white border-t border-slate-50 hidden flex-col">
+                    <div id="window-24h-warning" class="hidden w-full bg-amber-50 border-b border-amber-100 px-4 py-2 text-xs text-amber-800 flex items-center justify-center gap-2">
+                        <i class="fas fa-exclamation-triangle text-amber-500"></i>
+                        <span><strong>Ventana de 24h cerrada.</strong> Los mensajes libres fallarán si WhatsApp no lo permite (Usa Plantillas).</span>
+                    </div>
+                    <div class="p-3 md:p-5 flex items-center gap-2 md:gap-4">
+                        <input type="text" id="message-input" class="flex-1 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 md:px-6 md:py-4 text-sm focus:ring-2 focus:ring-amber-500/20 transition outline-none" placeholder="Escribe un mensaje..." onkeypress="if(event.key === 'Enter') sendMessage()">
+                        <button id="btn-send-msg" onclick="sendMessage()" class="bg-blue-600 hover:bg-blue-700 text-white w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-2xl shadow-xl shadow-blue-200 flex items-center justify-center transition active:scale-95">
+                            <i class="fas fa-paper-plane text-lg md:text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- VISTA CRM (NUEVO) -->
+        <main id="view-crm" class="flex-1 p-4 md:p-8 view-hidden overflow-y-auto">
+            <div class="max-w-6xl mx-auto">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 md:mb-10">
+                    <div>
+                        <h1 class="text-2xl md:text-3xl font-black text-slate-800">Gestión de Leads</h1>
+                        <p class="text-slate-400">Base de datos centralizada de clientes</p>
+                    </div>
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full md:w-auto">
+                        <!-- Configuración de Empresa / Logo -->
+                        <div id="company-settings-ui" class="hidden bg-white px-4 py-2 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+                            <div class="flex items-center gap-2">
+                                <span class="text-[9px] font-black uppercase text-slate-400 tracking-widest">Logo</span>
+                                <input type="file" id="logo-upload-input" class="hidden" accept="image/*" onchange="handleLogoUpload(this)">
+                                <button onclick="document.getElementById('logo-upload-input').click()" class="w-8 h-8 rounded-lg bg-slate-50 text-slate-400 hover:bg-slate-100 transition flex items-center justify-center" title="Subir Logo">
+                                    <i class="fas fa-camera text-xs"></i>
+                                </button>
+                            </div>
+                            <div class="w-px h-6 bg-slate-100"></div>
+                            <div class="flex items-center gap-3">
+                                <span class="text-[9px] font-black uppercase text-slate-400 tracking-widest"><i class="fas fa-route mr-1"></i> Rutas</span>
+                                <select id="crm-assignment-mode" onchange="updateAssignmentMode(this.value)" class="text-xs font-bold text-slate-700 bg-transparent border-none outline-none cursor-pointer p-0">
+                                    <option value="round_robin">Automático (Rotativo)</option>
+                                    <option value="manual">Nadie (Sin Asignar)</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <button onclick="openNewLeadModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-2xl font-bold shadow-xl shadow-blue-100 transition flex items-center gap-3">
+                            <i class="fas fa-user-plus"></i> Nuevo Lead
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-3xl crm-shadow border border-white overflow-hidden mb-8">
+                    <div class="p-4 md:p-6 border-b border-slate-50 flex flex-col md:flex-row items-stretch md:items-center gap-4 bg-slate-50/30">
+                        <div class="relative flex-1">
+                            <i class="fas fa-search absolute left-5 top-1/2 -translate-y-1/2 text-slate-300"></i>
+                            <input type="text" id="crm-search" placeholder="Buscar por nombre o teléfono..." 
+                                class="w-full bg-white border border-slate-100 rounded-2xl pl-12 pr-6 py-4 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition outline-none"
+                                oninput="filterCRMLeads()">
+                        </div>
+                        <select id="crm-filter-status" onchange="filterCRMLeads()" 
+                            class="bg-white border border-slate-100 rounded-2xl px-4 py-4 text-sm font-bold text-slate-600 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition outline-none shadow-sm">
+                            <option value="all">TODOS LOS ESTADOS</option>
+                            <option value="Esperando Operador">ESPERANDO OPERADOR</option>
+                            <option value="No Contactado">NO CONTACTADO</option>
+                            <option value="Re Marketing 0">RE MARKETING 0</option>
+                            <option value="Pendiente">PENDIENTE</option>
+                            <option value="No Contesto WA">NO CONTESTO WA</option>
+                            <option value="Informar Estado">INFORMAR ESTADO</option>
+                            <option value="Hablo y No Cerro">HABLO Y NO CERRO</option>
+                            <option value="En Proceso">EN PROCESO</option>
+                            <option value="Contactado">CONTACTADO</option>
+                            <option value="Interesado">INTERESADO</option>
+                            <option value="Vendido">VENDIDO</option>
+                        </select>
+
+                        <div class="flex items-center gap-3 overflow-x-auto w-full md:w-auto">
+                            <div class="flex flex-col">
+                                <label class="text-[9px] font-black uppercase text-slate-400 ml-2 mb-1">Desde</label>
+                                <input type="date" id="crm-filter-date-from" onchange="loadCRMLeads()" class="bg-white border border-slate-100 rounded-2xl px-4 py-3 text-sm font-bold text-slate-600 focus:ring-4 focus:ring-blue-500/10 outline-none shadow-sm h-[54px]">
+                            </div>
+                            <div class="flex flex-col">
+                                <label class="text-[9px] font-black uppercase text-slate-400 ml-2 mb-1">Hasta</label>
+                                <input type="date" id="crm-filter-date-to" onchange="loadCRMLeads()" class="bg-white border border-slate-100 rounded-2xl px-4 py-3 text-sm font-bold text-slate-600 focus:ring-4 focus:ring-blue-500/10 outline-none shadow-sm h-[54px]">
+                            </div>
+                            <div class="flex flex-col hidden" id="crm-filter-operator-container">
+                                <label class="text-[9px] font-black uppercase text-slate-400 ml-2 mb-1">Operador</label>
+                                <select id="crm-filter-operator" onchange="loadCRMLeads()" class="bg-white border border-slate-100 rounded-2xl px-4 py-3 text-sm font-bold text-slate-600 focus:ring-4 focus:ring-blue-500/10 outline-none shadow-sm h-[54px] min-w-[150px]">
+                                    <option value="all">TODOS</option>
+                                    <option value="unassigned">SIN ASIGNAR</option>
+                                </select>
+                            </div>
+                            <div class="flex flex-col justify-end h-full">
+                                <label class="text-[9px] font-black uppercase text-transparent mb-1 block select-none">X</label>
+                                <button onclick="clearCRMFilters()" class="bg-slate-100 hover:bg-slate-200 text-slate-500 px-4 py-3 rounded-2xl transition shadow-sm h-[54px] flex items-center justify-center" title="Limpiar Filtros">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="text-slate-400 text-xs font-bold px-4 shrink-0 whitespace-nowrap">
+                            <span id="crm-count-visible">0</span> / <span id="crm-count-total">0</span> leads
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto w-full">
+                        <table class="w-full text-left whitespace-nowrap md:whitespace-normal">
+                            <thead class="bg-slate-50 border-b border-slate-100">
+                                <tr>
+                                    <th onclick="toggleCRMDateSort()" class="p-4 md:p-6 text-[10px] font-black uppercase text-slate-400 cursor-pointer hover:text-blue-600 transition-colors group">
+                                        Fecha <i id="crm-date-sort-icon" class="fas fa-sort ml-1 text-slate-300 group-hover:text-blue-400"></i>
+                                    </th>
+                                    <th class="p-4 md:p-6 text-[10px] font-black uppercase text-slate-400">Cliente</th>
+                                    <th class="p-4 md:p-6 text-[10px] font-black uppercase text-slate-400">Teléfono</th>
+                                    <th class="p-4 md:p-6 text-[10px] font-black uppercase text-slate-400">Estado</th>
+                                    <th class="p-4 md:p-6 text-[10px] font-black uppercase text-slate-400">Operador</th>
+                                    <th class="p-4 md:p-6 text-[10px] font-black uppercase text-slate-400">Etiquetas</th>
+                                    <th class="p-4 md:p-6 text-[10px] font-black uppercase text-slate-400 text-right sticky-col">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="crm-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- VISTA OPERADORES (NUEVO) -->
+        <main id="view-operators" class="flex-1 p-4 md:p-8 view-hidden overflow-y-auto">
+            <div class="max-w-4xl mx-auto">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 md:mb-10">
+                    <div>
+                        <h1 class="text-2xl md:text-3xl font-black text-slate-800">Operadores</h1>
+                        <p class="text-slate-400">Administra quién accede al sistema</p>
+                    </div>
+                    <button id="btn-new-op" onclick="openNewOpModal()" class="w-full md:w-auto bg-slate-800 hover:bg-slate-900 text-white px-8 py-4 rounded-2xl font-bold shadow-xl shadow-slate-100 transition view-hidden">
+                        Nuevo Operador
+                    </button>
+                </div>
+
+                <div id="operators-list" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+            </div>
+        </main>
+
+        <!-- VISTA ESTADISTICAS (NUEVO) -->
+        <main id="view-stats" class="flex-1 p-4 md:p-8 view-hidden overflow-y-auto bg-slate-50">
+            <div class="max-w-6xl mx-auto">
+                <div class="mb-10">
+                    <h1 class="text-3xl font-black text-slate-800 tracking-tight">Estadísticas e IA</h1>
+                    <p class="text-slate-400 font-medium">Análisis inteligente del comportamiento de ventas</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Temperatura Media</p>
+                        <h3 id="stat-avg-temp" class="text-3xl font-black text-orange-500">0%</h3>
+                    </div>
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Leads Totales</p>
+                        <h3 id="stat-total-leads" class="text-3xl font-black text-blue-600">0</h3>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+                        <h4 class="text-sm font-black text-slate-800 uppercase tracking-widest mb-6">Distribución por Estado</h4>
+                        <canvas id="chart-status" class="max-h-64"></canvas>
+                    </div>
+                    <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+                        <h4 class="text-sm font-black text-slate-800 uppercase tracking-widest mb-6">Sentimiento General (IA)</h4>
+                        <canvas id="chart-sentiment" class="max-h-64"></canvas>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- VISTA SUPER ADMIN (Gestión SaaS) -->
+        <main id="view-superadmin" class="flex-1 p-8 view-hidden overflow-y-auto bg-slate-50">
+            <div class="max-w-[1600px] mx-auto">
+                <div class="mb-10 flex justify-between items-end">
+                    <div>
+                        <h1 class="text-3xl font-black text-slate-800 tracking-tight">Panel Principal SaaS</h1>
+                        <p class="text-slate-400 font-medium">Control global de empresas y métricas del sistema</p>
+                    </div>
+                    <button onclick="openSuperAllOperatorsModal()" class="bg-slate-800 text-white px-6 py-3 rounded-2xl text-xs font-black hover:bg-slate-900 transition shadow-lg shadow-slate-200 flex items-center gap-2">
+                        <i class="fas fa-users-cog"></i> VER TODOS LOS USUARIOS
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Empresas Totales</p>
+                        <h3 id="super-stat-companies" class="text-3xl font-black text-slate-800">0</h3>
+                    </div>
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Leads Globales</p>
+                        <h3 id="super-stat-leads" class="text-3xl font-black text-blue-600">0</h3>
+                    </div>
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Mensajes Globales</p>
+                        <h3 id="super-stat-msgs" class="text-3xl font-black text-indigo-600">0</h3>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 border-b border-slate-100">
+                            <tr>
+                                <th class="p-6 text-[10px] font-black uppercase text-slate-400">Empresa / Tenant</th>
+                                <th class="p-6 text-[10px] font-black uppercase text-slate-400 text-center">Logo</th>
+                                <th class="p-6 text-[10px] font-black uppercase text-slate-400">Estado</th>
+                                <th class="p-6 text-[10px] font-black uppercase text-slate-400 text-center">Leads</th>
+                                <th class="p-6 text-[10px] font-black uppercase text-slate-400 text-center">Msgs</th>
+                                <th class="p-6 text-[10px] font-black uppercase text-slate-400 text-center w-[250px]">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="super-companies-table"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+        <!-- VISTA ESTADISTICAS (NUEVO) -->
+        <main id="view-stats" class="flex-1 p-4 md:p-8 view-hidden overflow-y-auto bg-slate-50">
+            <div class="max-w-6xl mx-auto">
+                <div class="mb-10">
+                    <h1 class="text-3xl font-black text-slate-800 tracking-tight">Panel de Estadísticas</h1>
+                    <p class="text-slate-400 font-medium">Análisis de rendimiento y conversión de leads</p>
+                </div>
+
+                <!-- KPIs Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Leads Totales</p>
+                        <h3 id="stat-total-leads" class="text-3xl font-black text-slate-800">0</h3>
+                    </div>
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm border-l-4 border-l-blue-500">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Nuevos Hoy</p>
+                        <h3 id="stat-leads-today" class="text-3xl font-black text-blue-600">0</h3>
+                    </div>
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm border-l-4 border-l-emerald-500">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Conversión</p>
+                        <h3 id="stat-conversion-rate" class="text-3xl font-black text-emerald-600">0%</h3>
+                    </div>
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Mensajes</p>
+                        <h3 id="stat-total-msgs" class="text-3xl font-black text-indigo-600">0</h3>
+                    </div>
+                </div>
+
+                <!-- Charts Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Leads over Time -->
+                    <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm lg:col-span-2">
+                        <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest mb-6">Ingreso de Leads (Últimos 15 días)</h3>
+                        <div class="h-[300px]">
+                            <canvas id="chart-leads-time"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Status Distribution -->
+                    <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex flex-col">
+                        <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest mb-6">Distribución por Estado</h3>
+                        <div class="flex-1 flex items-center justify-center min-h-[300px]">
+                            <canvas id="chart-status-dist"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Operator Performance -->
+                    <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+                        <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest mb-6">Rendimiento por Operador</h3>
+                        <div class="h-[300px]">
+                            <canvas id="chart-ops-perf"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- VISTA CONFIGURACION (NUEVO) -->
+        <main id="view-settings" class="view-content flex flex-col h-screen overflow-hidden view-hidden">
+            <div class="p-8 max-w-4xl mx-auto space-y-8">
+                <div class="flex items-center justify-between border-b border-slate-200 pb-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Configuración del Sistema</h2>
+                        <p class="text-slate-500 text-sm">Gestiona tu marca, exportaciones y ajustes generales</p>
+                    </div>
+                    <i class="fas fa-cogs text-slate-300 text-3xl"></i>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Tarjeta: Mi Marca -->
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+                        <div class="flex items-center gap-3 text-blue-600 mb-2">
+                            <i class="fas fa-paint-brush"></i>
+                            <h3 class="font-bold text-slate-800">Identidad Visual</h3>
+                        </div>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Nombre de la Empresa</label>
+                                <input type="text" id="settings-company-name" class="w-full h-10 px-3 rounded-lg border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Logo Publicitario</label>
+                                <div class="flex items-center gap-4">
+                                    <div id="settings-logo-preview" class="w-12 h-12 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center overflow-hidden">
+                                        <i class="fas fa-image text-slate-300"></i>
+                                    </div>
+                                    <input type="file" id="settings-logo-input" accept="image/*" class="hidden">
+                                    <button onclick="document.getElementById('settings-logo-input').click()" class="flex-1 h-10 rounded-lg bg-slate-50 text-slate-600 text-sm font-medium hover:bg-slate-100 transition-all border border-slate-200 border-dashed">
+                                        Cambiar Logo
+                                    </button>
+                                </div>
+                            </div>
+                            <button onclick="saveSettingsBranding()" class="w-full h-11 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 active:scale-[0.98]">
+                                Guardar Cambios
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta: Backups -->
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+                        <div class="flex items-center gap-3 text-emerald-600 mb-2">
+                            <i class="fas fa-database"></i>
+                            <h3 class="font-bold text-slate-800">Respaldo de Datos</h3>
+                        </div>
+                        <p class="text-sm text-slate-500 leading-relaxed">Exporta toda tu base de leads y contactos en formato JSON para copias de seguridad externas o reportes personalizados.</p>
+                        <div class="pt-2">
+                            <button onclick="downloadBackup()" class="w-full h-11 bg-slate-800 text-white rounded-lg font-bold hover:bg-slate-900 transition-all flex items-center justify-center gap-2">
+                                <i class="fas fa-download text-sm"></i>
+                                Descargar Base CRM (.json)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- VIEW: REMARKETING -->
+        <main id="view-remarketing" class="view-content flex flex-col h-screen overflow-hidden view-hidden">
+            <!-- Banner de Estado para Errores/Éxito -->
+            <div id="rm-status-banner" class="hidden px-6 py-3 flex items-center justify-between transition-all">
+                <span id="rm-status-text" class="font-bold text-sm"></span>
+                <button onclick="document.getElementById('rm-status-banner').classList.add('hidden')" class="text-white hover:scale-110 transition-transform">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="flex h-full">
+                <!-- Leads Selection Side -->
+                <div class="flex-1 flex flex-col border-r border-slate-200 bg-white">
+                    <div class="p-6 border-b border-slate-100">
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Módulo de Remarketing</h2>
+                                <p class="text-slate-500 text-sm">Selecciona leads para campañas masivas de WhatsApp</p>
+                            </div>
+                            <div class="flex items-center gap-2 text-[11px] font-bold text-slate-400 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200">
+                                <span id="remarketing-selected-count">0</span> leads seleccionados
+                            </div>
+                        </div>
+
+                        <!-- Filters -->
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="relative">
+                                <i class="fas fa-search absolute left-3 top-3 text-slate-400 text-xs"></i>
+                                <input type="text" id="rm-search" placeholder="Buscar por nombre..." oninput="filterRemarketingLeads()" class="w-full h-9 pl-9 pr-3 rounded-lg border border-slate-200 focus:border-purple-500 outline-none text-xs transition-all">
+                            </div>
+                            <select id="rm-filter-status" onchange="loadRemarketingLeads()" class="h-9 px-3 rounded-lg border border-slate-200 focus:border-purple-500 outline-none text-xs text-slate-600 bg-slate-50">
+                                <option value="all">Cualquier Estado</option>
+                                <option value="No contactado">No contactado</option>
+                                <option value="Contactado">Contactado</option>
+                                <option value="Interesado">Interesado</option>
+                                <option value="Vendido">Vendido</option>
+                                <option value="Re Marketing 0">Re Marketing 0</option>
+                            </select>
+                            <input type="text" id="rm-filter-tag" placeholder="Filtrar por etiqueta..." oninput="filterRemarketingLeads()" class="h-9 px-3 rounded-lg border border-slate-200 focus:border-purple-500 outline-none text-xs bg-slate-50">
+                        </div>
+                    </div>
+
+                    <!-- Leads List -->
+                    <div class="flex-1 overflow-auto bg-slate-50/30">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="sticky top-0 bg-white border-b border-slate-200 z-10">
+                                <tr>
+                                    <th class="p-4 w-12 text-center">
+                                        <input type="checkbox" id="rm-select-all" onclick="toggleAllRemarketing()" class="w-4 h-4 rounded border-slate-300 text-purple-600 focus:ring-purple-500">
+                                    </th>
+                                    <th class="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Nombre Completo</th>
+                                    <th class="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Etiquetas</th>
+                                    <th class="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="remarketing-table-body" class="divide-y divide-slate-100">
+                                <!-- Render dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Campaign Panel -->
+                <div class="w-80 flex flex-col bg-slate-50">
+                    <div class="p-6 border-b border-slate-200 bg-white">
+                        <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fas fa-paper-plane text-purple-500"></i>
+                            Panel de Campaña
+                        </h3>
+                    </div>
+                    <div class="p-6 space-y-6 flex-1 overflow-auto">
+                        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm space-y-4">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-2">Plantilla de WhatsApp</label>
+                                <div class="flex gap-2">
+                                    <select id="rm-template-select" onchange="updateTemplatePreview()" class="flex-1 h-10 px-3 rounded-lg border border-slate-200 focus:border-purple-500 outline-none text-sm bg-slate-50">
+                                        <option value="">Cargando plantillas...</option>
+                                    </select>
+                                    <button onclick="loadWhatsAppTemplates()" class="w-10 h-10 rounded-lg bg-slate-100 text-slate-400 hover:text-purple-600 hover:bg-purple-50 transition-all border border-slate-200 flex items-center justify-center" title="Recargar plantillas">
+                                        <i class="fas fa-sync-alt text-xs"></i>
+                                    </button>
+                                </div>
+                                <!-- Preview Area -->
+                                <div id="rm-template-preview" class="mt-3 p-3 bg-slate-50 rounded-lg border border-dashed border-slate-200 hidden">
+                                    <p class="text-[10px] font-bold text-purple-600 uppercase mb-1">Previsualización:</p>
+                                    <div id="rm-preview-body" class="text-[11px] text-slate-600 leading-relaxed italic"></div>
+                                </div>
+                                <p id="rm-template-error" class="text-[9px] text-red-500 mt-2 font-bold hidden"></p>
+                            </div>
+
+                            <!-- Dynamic Media/Params Fields -->
+                            <div id="rm-dynamic-inputs" class="space-y-4 pt-2 hidden">
+                                <div id="rm-media-input-container" class="hidden">
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">URL de Imagen/Multimedia</label>
+                                    <div class="flex gap-2">
+                                        <input type="text" id="rm-media-url" placeholder="https://ejemplo.com/imagen.jpg" 
+                                            class="flex-1 h-10 px-3 rounded-lg border border-slate-200 focus:border-purple-500 outline-none text-xs bg-white shadow-sm">
+                                        <button onclick="document.getElementById('rm-media-file').click()" class="w-10 h-10 rounded-lg bg-purple-50 text-purple-600 hover:bg-purple-100 transition-all border border-purple-100 flex items-center justify-center shrink-0" title="Subir archivo">
+                                            <i id="rm-upload-icon" class="fas fa-cloud-upload-alt"></i>
+                                        </button>
+                                        <input type="file" id="rm-media-file" class="hidden" onchange="uploadRemarketingMedia(this)" accept="image/*,video/*,application/pdf">
+                                    </div>
+                                    <p class="text-[8px] text-slate-400 mt-1 italic">El archivo se alojará en este servidor primario.</p>
+                                </div>
+                                <div id="rm-vars-input-container" class="hidden">
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Variables de Texto ({{1}})</label>
+                                    <input type="text" id="rm-vars" placeholder="Ej: Juan" 
+                                        class="w-full h-10 px-3 rounded-lg border border-slate-200 focus:border-purple-500 outline-none text-xs bg-white shadow-sm">
+                                </div>
+                            </div>
+
+                            <!-- Meta Guidelines Section -->
+                            <div class="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-lg text-[9px] text-blue-700 leading-relaxed">
+                                <p class="font-bold mb-1 uppercase tracking-wider"><i class="fas fa-info-circle mr-1"></i> Recomendaciones de Meta:</p>
+                                <ul class="list-disc ml-3 space-y-0.5">
+                                    <li><strong>Imágenes</strong>: JPG/PNG, máx 5MB. Preferido ratio 1:1.</li>
+                                    <li><strong>Videos</strong>: MP4 (H.264), máx 16MB. Ratio 16:9 o 1:1.</li>
+                                    <li><strong>Documentos</strong>: PDF, máx 100MB.</li>
+                                </ul>
+                            </div>
+
+                            <div class="pt-2">
+                                <button id="rm-send-btn" onclick="sendRemarketingCampaign()" class="w-full h-12 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700 transition-all shadow-lg shadow-purple-600/20 flex items-center justify-center gap-2 active:scale-[0.98]">
+                                    <i class="fab fa-whatsapp text-lg"></i>
+                                    Enviar Campaña
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-purple-50 rounded-xl border border-purple-100 p-4">
+                            <h4 class="text-[11px] font-bold text-purple-700 uppercase mb-2">Consejo de Remarketing</h4>
+                            <p class="text-xs text-purple-600 leading-relaxed">Segmentar por etiquetas de interés aumenta la conversión un 40% más que los mensajes genéricos.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODALES -->
+
+    <!-- Modal Logo -->
+    <div id="modal-logo-upload" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-300">
+            <div class="p-8">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h3 class="text-xl font-black text-slate-800">Actualizar Logo</h3>
+                        <p id="logo-company-name" class="text-slate-400 text-xs font-bold uppercase tracking-tight"></p>
+                    </div>
+                    <button onclick="closeLogoModal()" class="text-slate-300 hover:text-slate-500 transition-colors">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+
+                <div class="space-y-6">
+                    <input type="hidden" id="logo-company-id">
+                    <div class="group relative">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Seleccionar Imagen</label>
+                        <div class="flex items-center justify-center w-full">
+                            <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-200 rounded-3xl cursor-pointer bg-slate-50 hover:bg-slate-100 transition-all group-hover:border-blue-400">
+                                <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                    <i class="fas fa-image text-slate-300 text-2xl mb-2 group-hover:text-blue-500 transition-colors"></i>
+                                    <p class="text-xs text-slate-500 font-bold">Haz clic para buscar</p>
+                                </div>
+                                <input id="logo-file-input" type="file" class="hidden" accept="image/*" />
+                            </label>
+                        </div>
+                    </div>
+
+                    <button onclick="uploadLogo()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl transition shadow-lg shadow-blue-200 uppercase tracking-widest text-[10px]">
+                        Guardar Logo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Gestión de Operadores por Empresa (Super Admin) -->
+    <div id="modal-super-operators" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+            <div class="p-8">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h3 class="text-xl font-black text-slate-800">Operadores de Empresa</h3>
+                        <p id="super-op-company-name" class="text-slate-400 text-xs font-bold uppercase tracking-tight"></p>
+                    </div>
+                    <button onclick="document.getElementById('modal-super-operators').classList.add('hidden')" class="text-slate-300 hover:text-slate-500 transition-colors">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Formulario Nuevo Operador -->
+                    <div class="md:col-span-1 space-y-4 border-r border-slate-100 pr-6">
+                        <h4 class="text-[10px] font-black uppercase text-blue-600">Nuevo Operador</h4>
+                        <input type="hidden" id="super-op-company-id">
+                        <input type="text" id="super-op-fullname" placeholder="Nombre Completo" class="w-full bg-slate-50 p-3 rounded-xl text-xs border border-slate-100 outline-none focus:border-blue-500">
+                        <input type="email" id="super-op-email" placeholder="Email (Login)" class="w-full bg-slate-50 p-3 rounded-xl text-xs border border-slate-100 outline-none focus:border-blue-500">
+                        <input type="password" id="super-op-pass" placeholder="Contraseña" class="w-full bg-slate-50 p-3 rounded-xl text-xs border border-slate-100 outline-none focus:border-blue-500">
+                        <button onclick="superCreateOperator()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl text-xs hover:bg-blue-700 transition shadow-lg shadow-blue-100">
+                            Crear Operador
+                        </button>
+                    </div>
+
+                    <!-- Lista de Operadores -->
+                    <div class="md:col-span-2">
+                        <h4 class="text-[10px] font-black uppercase text-slate-400 mb-4">Usuarios Actuales</h4>
+                        <div class="max-h-[300px] overflow-y-auto space-y-2" id="super-op-list">
+                            <!-- Renderizado dinámico -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Todos los Operadores (Súper Admin) -->
+    <div id="modal-super-all-operators" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="w-full max-w-4xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <div>
+                    <h2 class="text-2xl font-black text-slate-800 tracking-tight">Usuarios Globales</h2>
+                    <p class="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1">Todos los Operadores de todas las Empresas</p>
+                </div>
+                <button onclick="document.getElementById('modal-super-all-operators').classList.add('hidden')" class="text-slate-300 hover:text-slate-500 transition-colors">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-8">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="border-b border-slate-100">
+                            <th class="pb-4 text-[10px] font-black uppercase text-slate-400">Usuario / Email</th>
+                            <th class="pb-4 text-[10px] font-black uppercase text-slate-400">Nombre</th>
+                            <th class="pb-4 text-[10px] font-black uppercase text-slate-400">Empresa</th>
+                            <th class="pb-4 text-[10px] font-black uppercase text-slate-400">Rol</th>
+                        </tr>
+                    </thead>
+                    <tbody id="super-all-ops-list" class="divide-y divide-slate-50"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-container" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center view-hidden">
+        <!-- Modal Lead -->
+        <div id="modal-lead" class="w-full max-w-lg bg-white rounded-3xl p-10 crm-shadow view-hidden">
+            <h2 id="modal-lead-title" class="text-2xl font-black mb-6">Crear Nuevo Lead</h2>
+            <input type="hidden" id="edit-lead-id">
+            <div class="space-y-4 max-h-[60vh] overflow-y-auto px-1">
+                <div>
+                    <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Nombre Completo</label>
+                    <input type="text" id="lead-name" placeholder="Ej: Juan Pérez" class="w-full bg-slate-50 p-4 rounded-2xl outline-none border border-slate-100 focus:border-blue-500 transition">
+                </div>
+                <div>
+                    <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Teléfono (WhatsApp ID)</label>
+                    <input type="text" id="lead-phone" placeholder="Ej: 549341123456" class="w-full bg-slate-50 p-4 rounded-2xl outline-none border border-slate-100 focus:border-blue-500 transition">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Email</label>
+                        <input type="email" id="lead-email" placeholder="mail@ejemplo.com" class="w-full bg-slate-50 p-4 rounded-2xl outline-none border border-slate-100 focus:border-blue-500 transition">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Estado</label>
+                        <select id="lead-status" class="w-full bg-slate-50 p-4 rounded-2xl outline-none border border-slate-100 focus:border-blue-500 transition">
+                            <option value="Esperando Operador">Esperando Operador</option>
+                            <option value="No Contactado">No Contactado</option>
+                            <option value="Re Marketing 0">Re Marketing 0</option>
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="No Contesto WA">No Contesto WA</option>
+                            <option value="Informar Estado">Informar Estado</option>
+                            <option value="Hablo y No Cerro">Hablo y No Cerro</option>
+                            <option value="En Proceso">En Proceso</option>
+                            <option value="Contactado">Contactado</option>
+                            <option value="Interesado">Interesado</option>
+                            <option value="Vendido">Vendido</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Dirección</label>
+                    <input type="text" id="lead-address" placeholder="Ej: Calle Falsa 123" class="w-full bg-slate-50 p-4 rounded-2xl outline-none border border-slate-100 focus:border-blue-500 transition">
+                </div>
+                <div>
+                    <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Observaciones</label>
+                    <textarea id="lead-observations" placeholder="Notas sobre el cliente..." class="w-full bg-slate-50 p-4 rounded-2xl outline-none border border-slate-100 focus:border-blue-500 transition h-24"></textarea>
+                </div>
+                <div>
+                    <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Etiquetas (Separadas por comas)</label>
+                    <input type="text" id="lead-tags" placeholder="Ej: VIP, Interesado, Prioridad" class="w-full bg-slate-50 p-4 rounded-2xl outline-none border border-slate-100 focus:border-blue-500 transition">
+                </div>
+
+                <!-- SECCION IA -->
+                <div class="mt-8 pt-6 border-t border-slate-100">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-sm font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2">
+                            <i class="fas fa-brain"></i> Análisis con IA
+                        </h3>
+                        <button onclick="analyzeCurrentLead()" id="btn-analyze-ai" class="bg-indigo-600 text-white px-4 py-2 rounded-xl text-[10px] font-black hover:bg-indigo-700 transition flex items-center gap-2 shadow-lg shadow-indigo-200">
+                            <i class="fas fa-magic"></i> ANALIZAR AHORA
+                        </button>
+                    </div>
+                    <div id="ai-insights-container" class="bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100 hidden">
+                        <div class="flex gap-4 mb-4">
+                            <div class="flex-1">
+                                <p class="text-[8px] font-black text-slate-400 uppercase mb-1">Sentimiento</p>
+                                <p id="ai-sentiment" class="text-xs font-bold text-slate-700">---</p>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-[8px] font-black text-slate-400 uppercase mb-1">Temperatura</p>
+                                <div class="w-full bg-slate-200 h-2 rounded-full mt-2 overflow-hidden">
+                                    <div id="ai-temp-bar" class="bg-orange-500 h-full w-0 transition-all duration-1000"></div>
+                                </div>
+                                <p id="ai-temp-text" class="text-[10px] font-black text-orange-600 mt-1">0%</p>
+                            </div>
+                        </div>
+                        <p class="text-[8px] font-black text-slate-400 uppercase mb-1">Resumen del Lead</p>
+                        <p id="ai-summary" class="text-xs text-slate-600 leading-relaxed italic italic">"Aún sin analizar..."</p>
+                        <div class="mt-3 flex flex-wrap gap-2" id="ai-intents"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex gap-4 mt-8">
+                <button onclick="closeModal()" class="flex-1 bg-slate-100 py-4 rounded-2xl font-bold text-slate-600 hover:bg-slate-200 transition">Cancelar</button>
+                <button onclick="saveLead()" class="flex-1 bg-blue-600 py-4 rounded-2xl font-bold text-white shadow-lg shadow-blue-100 hover:bg-blue-700 transition">Guardar Lead</button>
+            </div>
+        </div>
+        
+        <!-- Modal Operador -->
+        <div id="modal-operator" class="w-full max-w-md bg-white rounded-3xl p-8 crm-shadow view-hidden">
+            <h2 id="modal-op-title" class="text-2xl font-black mb-6 text-slate-800">Nuevo Operador</h2>
+            <div class="space-y-4">
+                <input type="hidden" id="edit-op-id">
+                <div>
+                    <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Nombre Completo</label>
+                    <input type="text" id="op-name" placeholder="Ej: Juan Pérez" class="w-full bg-slate-50 p-4 rounded-2xl outline-none border border-slate-100 focus:border-blue-500 transition">
+                </div>
+                <div>
+                    <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Usuario</label>
+                    <input type="text" id="op-user" placeholder="Ej: jperez" class="w-full bg-slate-50 p-4 rounded-2xl outline-none border border-slate-100 focus:border-blue-500 transition">
+                </div>
+                <div>
+                    <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Correo Electrónico</label>
+                    <input type="email" id="op-email" placeholder="Para notificaciones (Opcional)" class="w-full bg-slate-50 p-4 rounded-2xl outline-none border border-slate-100 focus:border-blue-500 transition">
+                </div>
+                <div>
+                    <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Contraseña</label>
+                    <input type="password" id="op-pass" placeholder="••••••••" class="w-full bg-slate-50 p-4 rounded-2xl outline-none border border-slate-100 focus:border-blue-500 transition">
+                    <p class="text-[9px] text-slate-400 mt-1 ml-2">* Dejar vacío para mantener actual (en edición)</p>
+                </div>
+                <div>
+                    <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Rol de Usuario</label>
+                    <select id="op-role" class="w-full bg-slate-50 p-4 rounded-2xl outline-none border border-slate-100 focus:border-blue-500 transition">
+                        <option value="operador">OPERADOR</option>
+                        <option value="admin">ADMINISTRADOR</option>
+                    </select>
+                </div>
+                <div class="flex items-center gap-3 p-4 bg-blue-50/50 rounded-2xl border border-blue-100">
+                    <input type="checkbox" id="op-round-robin" class="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500" checked>
+                    <label for="op-round-robin" class="text-xs font-bold text-slate-700">Incluir en Round Robin (Asignación Automática)</label>
+                </div>
+            </div>
+            <div class="flex gap-4 mt-8">
+                <button onclick="closeModal()" class="flex-1 bg-slate-100 py-4 rounded-2xl font-bold text-slate-600 hover:bg-slate-200 transition">Cancelar</button>
+                <button onclick="saveOperator()" class="flex-1 bg-slate-800 py-4 rounded-2xl font-bold text-white shadow-lg shadow-slate-100 hover:bg-slate-900 transition">Guardar Operador</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let auth_token = localStorage.getItem('token');
+        let currentUser = null;
+        let activeUserId = null;
+        let activeUserPhone = null;
+        let activeUserBotActive = true;
+        let currentTags = [];
+        let lastMsgCount = 0;
+        let crmLeads = []; // Global storage for CRM leads
+        let companyOperators = []; // Guarda operadores para combobox
+
+        // --- RESPONSIVE TOGGLES ---
+        function toggleSidebar() {
+            const sidebar = document.getElementById('main-sidebar');
+            const overlay = document.getElementById('mobile-overlay');
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+        
+        function closeMobileChat() {
+            // Unselect user and go back to list on mobile
+            activeUserId = null;
+            document.querySelectorAll('.chat-user-item').forEach(u => u.classList.remove('bg-indigo-50', 'border-indigo-200'));
+            const chatList = document.getElementById('chat-list-container');
+            const chatWin = document.getElementById('chat-window-container');
+            
+            chatWin.classList.add('hidden');
+            chatWin.classList.remove('flex');
+            
+            chatList.classList.remove('hidden');
+            chatList.classList.add('flex');
+        }
+        
+        function openChatMobile() {
+            // Function called when selecting a user to show chat on mobile
+            if (window.innerWidth < 768) { // md in Tailwind
+                const chatList = document.getElementById('chat-list-container');
+                const chatWin = document.getElementById('chat-window-container');
+                
+                chatList.classList.add('hidden');
+                chatList.classList.remove('flex');
+                
+                chatWin.classList.remove('hidden');
+                chatWin.classList.add('flex');
+            }
+        }
+
+        // --- NAVEGACION ---
+        let currentView = 'conversations';
+        function showView(view, skipDataReload = false) {
+            currentView = view;
+            document.querySelectorAll('main').forEach(m => m.classList.add('view-hidden'));
+            document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active'));
+            document.getElementById('view-' + view).classList.remove('view-hidden');
+            const navBtn = document.getElementById('nav-' + view);
+            if (navBtn) navBtn.classList.add('active');
+            document.getElementById('view-title').innerText = view === 'superadmin' ? 'Gestión Global SaaS' : (view === 'crm' ? 'Gestión de Leads' : (view === 'operators' ? 'Administración de Operadores' : 'Conversaciones'));
+
+            // AUTO-CLOSE SIDEBAR ON MOBILE
+            if (window.innerWidth < 768) {
+                const sidebar = document.getElementById('main-sidebar');
+                const overlay = document.getElementById('mobile-overlay');
+                if (sidebar) sidebar.classList.add('-translate-x-full');
+                if (overlay) overlay.classList.add('hidden');
+            }
+
+            if (!skipDataReload) {
+                if (view === 'conversations') loadConversations();
+                if (view === 'crm') loadCRMLeads();
+                if (view === 'operators') loadOperators();
+                if (view === 'superadmin') loadSuperAdminData();
+                if (view === 'stats') loadStatsDashboard();
+                if (view === 'remarketing') {
+                    loadRemarketingLeads();
+                    loadWhatsAppTemplates();
+                }
+            }
+        }
+
+        // --- AUTH ---
+        function getStatusColor(status) {
+            const colors = {
+                'Esperando Operador': 'status-esperando',
+                'No Contactado': 'status-no-contactado',
+                'Re Marketing 0': 'status-remarketing-0',
+                'Contactado': 'status-contactado',
+                'Interesado': 'status-interesado',
+                'Vendido': 'status-vendido'
+            };
+            return colors[status] || 'status-no-contactado';
+        }
+
+        async function checkAuth() {
+            if (!auth_token) {
+                document.getElementById('login-screen').classList.remove('view-hidden');
+                document.getElementById('app-screen').classList.add('view-hidden');
+                return;
+            }
+            try {
+                const res = await fetch('/api/me', { headers: { 'Authorization': 'Bearer ' + auth_token }});
+                if (res.ok) {
+                    currentUser = await res.json();
+                    console.log("[AUTH] Logged in as:", currentUser.username, currentUser.role);
+                    document.getElementById('login-screen').classList.add('view-hidden');
+                    document.getElementById('app-screen').classList.remove('view-hidden');
+                    document.getElementById('me-name').innerText = currentUser.full_name;
+                    document.getElementById('me-role').innerText = currentUser.role;
+
+                    // Cargar Logo de Empresa si existe
+                    const logoContainer = document.getElementById('company-logo-container');
+                    const logoDisplay = document.getElementById('sidebar-company-logo');
+                    const nameDisplay = document.getElementById('company-name-display');
+
+                    if (currentUser.logo_data) {
+                        logoDisplay.src = currentUser.logo_data;
+                        logoContainer.classList.remove('hidden');
+                    } else {
+                        logoContainer.classList.add('hidden');
+                    }
+                    
+                    if (nameDisplay) {
+                        nameDisplay.innerText = currentUser.company_name || 'Mi Empresa';
+                    }
+                    
+                    if (currentUser.webhook_token && (currentUser.role === 'admin' || currentUser.role === 'super_admin')) {
+                        const settingsUI = document.getElementById('company-settings-ui');
+                        if (settingsUI) settingsUI.classList.remove('hidden');
+
+                        const url = `${window.location.origin}/webhook/n8n/${currentUser.webhook_token}`;
+                        document.getElementById('me-role').innerHTML += `
+                            <div class="mt-2 flex items-center gap-2 bg-white/5 p-1.5 rounded-lg border border-white/10 group relative">
+                                <code class="text-[8px] text-blue-400 font-mono truncate flex-1">${url}</code>
+                                <button onclick="copyToClipboard('${url}', this)" class="text-slate-400 hover:text-white transition-colors p-1 bg-white/5 rounded-md">
+                                    <i class="fas fa-copy text-[10px]"></i>
+                                </button>
+                                <span class="absolute -top-6 right-0 bg-indigo-600 text-[8px] text-white px-2 py-1 rounded opacity-0 transition-opacity pointer-events-none tip">Copiado!</span>
+                            </div>
+                        `;
+                    }
+
+                    if (currentUser.role === 'super_admin') {
+                        document.getElementById('nav-superadmin')?.classList.remove('view-hidden');
+                        // Limpiar contexto de empresa en el sidebar para Super Admin
+                        const nameDisplay = document.getElementById('company-name-display');
+                        if (nameDisplay) nameDisplay.innerText = 'MODO SÚPER ADMIN';
+                        
+                        const logoImg = document.getElementById('sidebar-company-logo');
+                        if (logoImg) logoImg.src = '/static/logo-mmarketing%20iso.png';
+                        
+                        document.getElementById('company-logo-container')?.classList.remove('hidden');
+                    }
+                    if (currentUser.role === 'admin' || currentUser.role === 'super_admin') {
+                        document.getElementById('nav-settings')?.classList.remove('view-hidden');
+                        document.getElementById('nav-remarketing')?.classList.remove('view-hidden');
+                        document.getElementById('nav-operators')?.classList.remove('view-hidden');
+                        document.getElementById('btn-new-op')?.classList.remove('view-hidden');
+                        document.getElementById('assignment-settings')?.classList.remove('hidden');
+                        
+                        // Ya activamos settingsUI arriba, pero nos aseguramos por si acaso
+                        const settingsUI = document.getElementById('company-settings-ui');
+                        if (settingsUI) settingsUI.classList.remove('hidden');
+                        
+                        const opFilterContainer = document.getElementById('crm-filter-operator-container');
+                        if (opFilterContainer) opFilterContainer.classList.remove('hidden');
+
+                        loadCompanySettings();
+                        loadOperatorsToGlobal();
+                        document.getElementById('nav-stats')?.classList.remove('view-hidden');
+                        
+                        // Load Settings View Defaults
+                        document.getElementById('settings-company-name').value = currentUser.company_name || '';
+                        if (currentUser.logo_url) {
+                             document.getElementById('settings-logo-preview').innerHTML = `<img src="${currentUser.logo_url}" class="w-full h-full object-contain">`;
+                        }
+                    }
+                    // Branding button logic removed
+                    
+                    showView('conversations');
+                    connectWebSocket();
+                } else if (res.status === 401) {
+                    doLogout();
+                } else {
+                    console.error("[AUTH] Server Error:", res.status);
+                    // No hacemos logout para permitir reintentos en caso de timeout de DB
+                    document.getElementById('login-error').innerText = 'Error de conexión con el servidor. Reintentando...';
+                    document.getElementById('login-error').classList.remove('hidden');
+                    setTimeout(checkAuth, 3000); // Reintento automático en 3 segs
+                }
+            } catch(e) { 
+                console.error("[AUTH] Exception during checkAuth:", e);
+            }
+        }
+
+        function toggleRegisterForm() {
+            const login = document.getElementById('form-login');
+            const reg = document.getElementById('form-register');
+            login.classList.toggle('-translate-x-full');
+            login.classList.toggle('opacity-0');
+            reg.classList.toggle('translate-x-full');
+            document.getElementById('login-error').classList.add('hidden');
+        }
+
+        async function doRegister() {
+            const company_name = document.getElementById('reg-company').value;
+            const admin_fullname = document.getElementById('reg-fullname').value;
+            const admin_username = document.getElementById('reg-user').value;
+            const admin_password = document.getElementById('reg-pass').value;
+            if (!company_name || !admin_username || !admin_password) return;
+
+            const res = await fetch('/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ company_name, admin_fullname, admin_username, admin_password })
+            });
+
+            if (res.ok) {
+                document.getElementById('login-user').value = admin_username;
+                document.getElementById('login-pass').value = admin_password;
+                toggleRegisterForm();
+                doLogin(); // Inicia sesion automaticamente
+            } else {
+                const data = await res.json();
+                document.getElementById('login-error').innerText = data.detail || 'Error al registrar';
+                document.getElementById('login-error').classList.remove('hidden');
+            }
+        }
+
+        async function doLogin() {
+            const user = document.getElementById('login-user').value;
+            const pass = document.getElementById('login-pass').value;
+            
+            if (!user || !pass) {
+                alert("Completa todos los campos");
+                return;
+            }
+
+            const body = new URLSearchParams();
+            body.append('username', user); // El backend lo tratará como email
+            body.append('password', pass);
+
+            try {
+                const res = await fetch('/token', { method: 'POST', body });
+                const data = await res.json();
+                if (res.ok) {
+                    localStorage.setItem('token', data.access_token);
+                    auth_token = data.access_token;
+                    console.log("[AUTH] Token received and stored");
+                    document.getElementById('login-error').classList.add('hidden');
+                    checkAuth();
+                } else {
+                    document.getElementById('login-error').innerText = res.status === 500 ? 'Error interno del servidor (posible timeout de DB). Reintenta en unos segundos.' : (data.detail || 'Error al entrar');
+                    document.getElementById('login-error').classList.remove('hidden');
+                }
+            } catch(e) { 
+                document.getElementById('login-error').innerText = 'Error de red o conexión al servidor.';
+                document.getElementById('login-error').classList.remove('hidden');
+            }
+        }
+
+        function doLogout() {
+            localStorage.removeItem('token');
+            auth_token = null;
+            location.reload();
+        }
+
+        // --- CONVERSACIONES ---
+        async function loadConversations() {
+            const res = await superFetch('/api/conversations');
+            const data = await res.json();
+            document.getElementById('stat-total-users').innerText = data.length;
+            document.getElementById('user-list').innerHTML = data.map(c => `
+                <div onclick="selectChat('${c.id}', '${c.user}', '${c.phone}', '${c.tags || ''}', ${c.is_bot_active}, ${c.is_24h_window_closed})" class="px-6 py-4 border-b border-slate-100 cursor-pointer hover:bg-slate-50 transition-all flex items-center gap-3 ${activeUserId === c.id ? 'bg-blue-50/50 border-r-2 border-r-blue-600' : ''}">
+                    <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-xs border border-slate-200 shrink-0 overflow-hidden">
+                        <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(c.user)}&background=F1F5F9&color=64748B&size=128" class="w-full h-full">
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-2 max-w-[80%]">
+                                <p class="font-bold text-sm text-slate-800 truncate">${c.user}</p>
+                                ${c.is_24h_window_closed ? '<i class="fas fa-clock text-[10px] text-amber-500" title="Ventana 24h Cerrada"></i>' : ''}
+                            </div>
+                            ${!c.is_bot_active ? '<i class="fas fa-user text-[10px] text-indigo-600" title="Intervención Humana"></i>' : ''}
+                        </div>
+                        <p class="text-[10px] text-slate-500 font-medium">${c.phone}</p>
+                        <div class="flex gap-1 mt-1 truncate">
+                            ${c.tags ? c.tags.split(',').map(t => `<span class="bg-slate-100 text-slate-400 text-[8px] font-bold px-1.5 py-0.5 rounded border border-slate-200 uppercase">${t}</span>`).join('') : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        let activeUser24hClosed = false;
+
+        async function selectChat(id, name, phone, tagsStr, isBotActive, is24hClosed) {
+            showView('conversations', true); // Cambia a vista chat sin recargar la lista de conversaciones
+            activeUserId = id;
+            openChatMobile(); // Desliza la vista al chat en celulares
+            activeUserPhone = phone;
+            activeUserBotActive = (isBotActive !== undefined) ? isBotActive : true;
+            activeUser24hClosed = (is24hClosed !== undefined) ? is24hClosed : true;
+            lastMsgCount = 0;
+            currentTags = tagsStr ? tagsStr.split(',').filter(t => t.trim()) : [];
+            
+            document.getElementById('chat-header-info').classList.remove('hidden');
+            document.getElementById('chat-input-area').classList.remove('hidden');
+            document.getElementById('chat-input-area').classList.add('flex');
+            document.getElementById('chat-title').innerText = name;
+            document.getElementById('chat-phone').innerText = phone;
+            
+            renderTagsInChat();
+            renderBotStatus();
+            render24hWarning();
+            loadMessages();
+            loadConversations(); // Para marcar el seleccionado
+        }
+
+        function render24hWarning() {
+            const warningEl = document.getElementById('window-24h-warning');
+            const inputEl = document.getElementById('message-input');
+            const btnEl = document.getElementById('btn-send-msg');
+            if (!warningEl) return;
+            if (activeUser24hClosed) {
+                warningEl.style.display = 'flex';
+                inputEl.classList.add('bg-amber-50', 'border-amber-200');
+                inputEl.classList.remove('bg-slate-50', 'border-slate-100');
+                if (btnEl) btnEl.classList.replace('bg-blue-600', 'bg-amber-500');
+                if (btnEl) btnEl.classList.replace('hover:bg-blue-700', 'hover:bg-amber-600');
+            } else {
+                warningEl.style.display = 'none';
+                inputEl.classList.remove('bg-amber-50', 'border-amber-200');
+                inputEl.classList.add('bg-slate-50', 'border-slate-100');
+                if (btnEl) btnEl.classList.replace('bg-amber-500', 'bg-blue-600');
+                if (btnEl) btnEl.classList.replace('hover:bg-amber-600', 'hover:bg-blue-700');
+            }
+        }
+
+        function renderBotStatus() {
+            const badge = document.getElementById('bot-status-badge');
+            const text = document.getElementById('bot-status-text');
+            const btn = document.getElementById('btn-toggle-bot');
+            
+            if (activeUserBotActive) {
+                badge.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-600 border border-emerald-200";
+                text.innerText = "Bot Activo";
+                btn.className = "w-8 h-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition";
+                btn.title = "Pausar Bot";
+            } else {
+                badge.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-500 border border-slate-200";
+                text.innerText = "Bot Pausado (Control Humano)";
+                btn.className = "w-8 h-8 rounded-lg bg-emerald-50 text-emerald-500 hover:bg-emerald-100 transition";
+                btn.title = "Reactivar Bot";
+            }
+        }
+
+        async function toggleBotStatus() {
+            if (!activeUserId) return;
+            const newStatus = !activeUserBotActive;
+            const res = await superFetch(`/api/users/${activeUserId}/bot_status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ is_bot_active: newStatus })
+            });
+            if (res.ok) {
+                activeUserBotActive = newStatus;
+                renderBotStatus();
+                loadConversations();
+            }
+        }
+
+        function renderTagsInChat() {
+            document.getElementById('chat-tags-display').innerHTML = currentTags.map(t => `<span class="bg-indigo-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full flex items-center gap-1">${t} <i class="fas fa-times cursor-pointer" onclick="removeTagRecord('${t}')"></i></span>`).join('');
+        }
+
+        function toggleTagInput() {
+            document.getElementById('tag-edit-panel').classList.toggle('hidden');
+        }
+
+        async function addCurrentTag() {
+            const input = document.getElementById('new-tag-input');
+            const tag = input.value.trim();
+            if (tag && !currentTags.includes(tag)) {
+                currentTags.push(tag);
+                renderTagsInChat();
+                input.value = '';
+                const lead = crmLeads.find(l => l.id === activeUserId);
+                const isBotActiveVal = lead ? lead.is_bot_active : true;
+
+                await superFetch('/api/users/' + activeUserId + '/tags', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tags: currentTags.join(',') })
+                });
+                loadCRMLeads(); // Sincronizar CRM
+            }
+        }
+
+        async function removeTagRecord(tag) {
+            currentTags = currentTags.filter(t => t !== tag);
+            renderTagsInChat();
+            const lead = crmLeads.find(l => l.id === activeUserId);
+            const isBotActiveVal = lead ? lead.is_bot_active : true;
+
+            await superFetch('/api/users/' + activeUserId + '/tags', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tags: currentTags.join(',') })
+            });
+            loadCRMLeads(); // Sincronizar CRM
+        }
+
+        async function loadMessages() {
+            if (!activeUserId) return;
+            const res = await superFetch('/api/messages/' + activeUserId);
+            const messages = await res.json();
+            const window = document.getElementById('chat-window');
+            
+            window.innerHTML = messages.map(m => {
+                const isSelf = m.from === 'bot' || m.from === 'human';
+                let bubbleClass = isSelf ? 'bg-blue-600 text-white border-blue-700' : 'bg-white text-slate-700 border-slate-200';
+                
+                // Color diferenciado para humano
+                if (m.from === 'human') {
+                    bubbleClass = 'bg-indigo-700 text-white border-indigo-800 shadow-md';
+                }
+
+                const senderLabel = m.from === 'human' ? 'Operador' : (m.from === 'bot' ? 'Asistente IA' : 'Cliente');
+                const timeStr = m.time ? new Date(m.time).toLocaleString('es-AR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : '';
+                
+                return `
+                <div class="flex flex-col ${isSelf ? 'items-end' : 'items-start'} mb-4">
+                    <div class="${bubbleClass} border px-4 py-2.5 rounded-2xl max-w-[80%] text-sm leading-relaxed shadow-sm">
+                        ${m.text}
+                        <div class="text-[9px] mt-1 opacity-70 text-right font-medium">${timeStr}</div>
+                    </div>
+                    <span class="text-[9px] text-slate-400 mt-1 mx-2 font-bold uppercase tracking-wider">${senderLabel}</span>
+                </div>
+                `;
+            }).join('');
+            if (messages.length > lastMsgCount) {
+                window.scrollTop = window.scrollHeight;
+                lastMsgCount = messages.length;
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('message-input');
+            const text = input.value.trim();
+            if (!activeUserId || !text) return;
+            input.value = '';
+            try {
+                await superFetch('/api/messages/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: activeUserId, text: text, phone: activeUserPhone })
+                });
+                
+                // Si el bot estaba activo, ahora esta pausado (takeover automatico)
+                if (activeUserBotActive) {
+                    activeUserBotActive = false;
+                    renderBotStatus();
+                }
+
+                loadMessages();
+                loadConversations();
+            } catch(e) {}
+        }
+
+        // --- CRM ---
+        async function loadCRMLeads() {
+            let url = '/api/conversations?';
+            const df = document.getElementById('crm-filter-date-from')?.value;
+            const dt = document.getElementById('crm-filter-date-to')?.value;
+            const op = document.getElementById('crm-filter-operator')?.value;
+            if (df) url += `date_from=${df}&`;
+            if (dt) url += `date_to=${dt}&`;
+            if (op && op !== 'all') url += `operator_id=${op}&`;
+            
+            const res = await superFetch(url);
+            crmLeads = await res.json();
+            filterCRMLeads(); // Aplica filtros locales (texto, status) y renderiza
+        }
+
+        function clearCRMFilters() {
+            if (document.getElementById('crm-filter-date-from')) document.getElementById('crm-filter-date-from').value = '';
+            if (document.getElementById('crm-filter-date-to')) document.getElementById('crm-filter-date-to').value = '';
+            if (document.getElementById('crm-filter-operator')) document.getElementById('crm-filter-operator').value = 'all';
+            document.getElementById('crm-search').value = '';
+            document.getElementById('crm-filter-status').value = 'all';
+            loadCRMLeads();
+        }
+
+        let crmDateSortOrder = 'desc'; 
+        function toggleCRMDateSort() {
+            crmDateSortOrder = (crmDateSortOrder === 'desc') ? 'asc' : 'desc';
+            const icon = document.getElementById('crm-date-sort-icon');
+            if (icon) {
+                icon.className = (crmDateSortOrder === 'desc') ? 'fas fa-sort-amount-down ml-1 text-blue-600' : 'fas fa-sort-amount-up ml-1 text-blue-600';
+            }
+            filterCRMLeads();
+        }
+
+        function filterCRMLeads() {
+            const query = document.getElementById('crm-search').value.toLowerCase().trim();
+            const statusFilter = document.getElementById('crm-filter-status').value;
+
+            let filtered = crmLeads.filter(l => {
+                const name = (l.user || "").toLowerCase();
+                const phone = (l.phone || l.id || "").toLowerCase();
+                const status = l.status || "No Contactado";
+                
+                const matchesSearch = name.includes(query) || phone.includes(query);
+                const matchesStatus = statusFilter === 'all' || status === statusFilter;
+                
+                return matchesSearch && matchesStatus;
+            });
+            // Aplicar Ordenamiento por Fecha
+            filtered.sort((a, b) => {
+                const dateA = new Date(a.created_at || 0);
+                const dateB = new Date(b.created_at || 0);
+                return (crmDateSortOrder === 'desc') ? dateB - dateA : dateA - dateB;
+            });
+
+            renderCRMTable(filtered);
+        }
+
+        function renderCRMTable(leads) {
+            document.getElementById('crm-count-visible').innerText = leads.length;
+            document.getElementById('crm-count-total').innerText = crmLeads.length;
+            
+            const opsOptions = '<option value="">Sin Asignar</option>' + companyOperators.map(o => `<option value="${o.id}">${o.full_name}</option>`).join('');
+
+            document.getElementById('crm-table-body').innerHTML = leads.map(l => {
+                const displayName = l.user || l.phone || 'Usuario Sin Nombre';
+                const displayPhone = l.phone || l.id || 'N/A';
+                const waLink = `https://wa.me/${displayPhone.replace(/[^0-9]/g, '')}`;
+                
+                const dateStr = l.created_at ? new Date(l.created_at).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute:'2-digit' }) : 'N/A';
+                
+                // Status Badge Logic
+                const statusColors = {
+                    'Esperando Operador': 'status-esperando',
+                    'No Contactado': 'status-no-contactado',
+                    'Re Marketing 0': 'status-remarketing-0',
+                    'Pendiente': 'status-pendiente',
+                    'No Contesto WA': 'status-no-contesto-wa',
+                    'Informar Estado': 'status-informar-estado',
+                    'Hablo y No Cerro': 'status-hablo-no-cerro',
+                    'En Proceso': 'status-en-proceso',
+                    'Contactado': 'status-contactado',
+                    'Interesado': 'status-interesado',
+                    'Vendido': 'status-vendido'
+                };
+                // Prevenir nulls y normalizar:
+                const safeStatus = (l.status || 'No Contactado').trim();
+                const statusClass = statusColors[safeStatus] || 'status-no-contactado';
+                
+                const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'super_admin');
+                
+                let operatorCell = `<span class="text-[10px] uppercase font-bold text-slate-500 px-2 py-1 bg-slate-50 rounded border border-slate-200">${l.assigned_name || 'Sin Asignar'}</span>`;
+                if (isAdmin) {
+                     operatorCell = `
+                        <select onchange="updateLeadAssignment('${l.id}', this.value)" class="appearance-none font-bold px-2 py-1 rounded bg-white text-[10px] uppercase text-slate-600 border border-slate-200 hover:border-slate-300 transition-all cursor-pointer shadow-sm outline-none">
+                            <option value="">Sin Asig.</option>
+                            ${companyOperators.map(o => `<option value="${o.id}" ${l.assigned_to === o.id ? 'selected' : ''}>${o.full_name}</option>`).join('')}
+                        </select>
+                     `;
+                }
+
+                return `
+                <tr class="border-b border-slate-100 hover:bg-slate-50/50 transition-colors group">
+                    <td class="p-4 md:p-6 text-xs text-slate-500 font-medium">
+                        ${dateStr}
+                    </td>
+                    <td class="p-4 md:p-6">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded bg-slate-100 text-slate-400 flex items-center justify-center font-bold text-[10px] border border-slate-200">${displayName.charAt(0).toUpperCase()}</div>
+                            <div class="min-w-0">
+                                <span class="font-semibold text-slate-800 block text-sm truncate">${displayName}</span>
+                                <span class="text-[10px] text-slate-400 truncate block">${l.email || 'Sin email'}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="p-4 md:p-6">
+                        <div class="flex flex-col">
+                            <span class="text-xs text-slate-600 font-medium">${displayPhone}</span>
+                            <span class="text-[10px] text-slate-400 truncate max-w-[120px]">${l.address || 'Sin dirección'}</span>
+                        </div>
+                    </td>
+                    <td class="p-4 md:p-6">
+                        <div class="relative inline-block text-[10px]">
+                            <select onchange="updateLeadStatus('${l.id}', this.value)" 
+                                class="appearance-none font-bold px-3 py-1 rounded border outline-none bg-white transition-all cursor-pointer ${statusClass}">
+                                <option value="Esperando Operador" ${l.status === 'Esperando Operador' ? 'selected' : ''}>ESPERANDO OPERADOR</option>
+                                <option value="No Contactado" ${l.status === 'No Contactado' ? 'selected' : ''}>NO CONTACTADO</option>
+                                <option value="Re Marketing 0" ${l.status === 'Re Marketing 0' ? 'selected' : ''}>RE MARKETING 0</option>
+                                <option value="Pendiente" ${l.status === 'Pendiente' ? 'selected' : ''}>PENDIENTE</option>
+                                <option value="No Contesto WA" ${l.status === 'No Contesto WA' ? 'selected' : ''}>NO CONTESTO WA</option>
+                                <option value="Informar Estado" ${l.status === 'Informar Estado' ? 'selected' : ''}>INFORMAR ESTADO</option>
+                                <option value="Hablo y No Cerro" ${l.status === 'Hablo y No Cerro' ? 'selected' : ''}>HABLO Y NO CERRO</option>
+                                <option value="En Proceso" ${l.status === 'En Proceso' ? 'selected' : ''}>EN PROCESO</option>
+                                <option value="Contactado" ${l.status === 'Contactado' ? 'selected' : ''}>CONTACTADO</option>
+                                <option value="Interesado" ${l.status === 'Interesado' ? 'selected' : ''}>INTERESADO</option>
+                                <option value="Vendido" ${l.status === 'Vendido' ? 'selected' : ''}>VENDIDO</option>
+                            </select>
+                        </div>
+                    </td>
+                    <td class="p-4 md:p-6">${operatorCell}</td>
+                    <td class="p-4 md:p-6">
+                        <div class="flex gap-1 flex-wrap max-w-[150px]">
+                            ${l.tags ? l.tags.split(',').map(t => `<span class="bg-slate-50 text-slate-400 text-[9px] font-bold px-2 py-0.5 rounded border border-slate-100 uppercase">${t}</span>`).join('') : '<span class="text-slate-300 text-[10px]">Sin etiquetas</span>'}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 sticky-col">
+                         <div class="flex justify-end gap-1.5 transition-opacity">
+                            <a href="${waLink}" target="_blank" class="w-8 h-8 flex items-center justify-center rounded-lg text-emerald-600 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-all shadow-sm" title="WhatsApp">
+                                <i class="fab fa-whatsapp"></i>
+                            </a>
+                            <button onclick="analyzeLeadFromTable('${l.id}')" class="w-8 h-8 flex items-center justify-center rounded-lg text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-all shadow-sm" title="Analizar con IA">
+                                <i class="fas fa-brain text-xs"></i>
+                            </button>
+                            <button onclick="openEditLeadModal('${l.id}')" class="w-8 h-8 flex items-center justify-center rounded-lg text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-all shadow-sm" title="Editar">
+                                <i class="fas fa-pencil-alt text-xs"></i>
+                            </button>
+                            ${isAdmin ? `
+                            <button onclick="deleteLead('${l.id}', '${displayName.replace(/'/g, "\\'")}')" class="w-8 h-8 flex items-center justify-center rounded-lg text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 transition-all shadow-sm" title="Borrar Lead">
+                                <i class="fas fa-trash-alt text-xs"></i>
+                            </button>
+                            ` : ''}
+                            <button onclick="selectChat('${l.id}', '${displayName}', '${displayPhone}', '${l.tags || ''}', ${l.is_bot_active}, ${l.is_24h_window_closed})" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-600 bg-slate-50 hover:bg-slate-200 border border-slate-200 transition-all shadow-sm" title="Chat">
+                                <i class="fas fa-comment-dots text-xs"></i>
+                            </button>
+                         </div>
+                    </td>
+                </tr>
+            `; }).join('');
+        }
+
+        async function updateLeadStatus(id, newStatus) {
+            const res = await superFetch('/api/users/' + id + '/status', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus })
+            });
+            if (res.ok) {
+                const lead = crmLeads.find(l => l.id === id);
+                if (lead) lead.status = newStatus;
+                renderCRMTable(crmLeads);
+            }
+        }
+        async function updateLeadAssignment(id, operatorId) {
+            await superFetch('/api/leads/' + id + '/assign', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ operator_id: operatorId ? parseInt(operatorId) : null })
+            });
+            // Update local value to prevent jump
+            const lead = crmLeads.find(l => l.id === id);
+            if(lead) lead.assigned_to = operatorId ? parseInt(operatorId) : null;
+        }
+
+        async function deleteLead(leadId, leadName) {
+            if (confirm(`¿Estás seguro que deseas borrar el lead "${leadName}" y todo su historial de mensajes? Esta acción no se puede deshacer.`)) {
+                try {
+                    const res = await superFetch('/api/leads/' + leadId, { method: 'DELETE' });
+                    if (res.ok) {
+                        alert("Lead borrado exitosamente.");
+                        loadCRMLeads();
+                        loadConversations();
+                        if (activeUserId === leadId) {
+                            document.getElementById('chat-header-info').classList.add('hidden');
+                            document.getElementById('chat-input-area').classList.add('hidden');
+                            document.getElementById('chat-window').innerHTML = `
+                                <div class="flex flex-col items-center justify-center h-full text-slate-300">
+                                     <i class="fas fa-comments text-6xl mb-4"></i>
+                                     <p class="font-bold">Selecciona una conversación para empezar</p>
+                                </div>
+                            `;
+                            activeUserId = null;
+                        }
+                    } else {
+                        const errorBody = await res.text();
+                        let errorMsg = "Error desconocido";
+                        try {
+                            const errJson = JSON.parse(errorBody);
+                            errorMsg = errJson.detail || errorMsg;
+                        } catch(e) { errorMsg = errorBody || errorMsg; }
+                        
+                        alert("Error al borrar lead: " + errorMsg);
+                    }
+                } catch(e) {
+                    console.error("Error de borrado:", e);
+                    alert("Error de red o de permisos al intentar borrar.");
+                }
+            }
+        }
+
+        async function updateAssignmentMode(newMode) {
+            const res = await superFetch('/api/company/settings', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ assignment_mode: newMode })
+            });
+            if (!res.ok) alert("Error al cambiar modo");
+        }
+
+        // --- CONFIGURACION DE EMPRESA Y LOGO ---
+
+        async function handleLogoUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            // Validar tamaño (aprox 1MB)
+            if (file.size > 1024 * 1024) {
+                alert("La imagen es demasiado pesada. Máximo 1MB.");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const base64Data = e.target.result;
+                
+                // Mostrar preview inmediato
+                document.getElementById('sidebar-company-logo').src = base64Data;
+                document.getElementById('company-logo-container').classList.remove('hidden');
+
+                const res = await superFetch('/api/company/settings', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ logo_data: base64Data })
+                });
+
+                if (res.ok) {
+                    showToast("Logo actualizado correctamente");
+                } else {
+                    const errorDetail = await res.text();
+                    console.error("Error subiendo logo:", errorDetail);
+                    alert("No se pudo guardar el logo: " + errorDetail);
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function loadCompanySettings() {
+            try {
+                const res = await superFetch('/api/company/settings');
+                const data = await res.json();
+                if(data.assignment_mode) {
+                    const modeSelect = document.getElementById('crm-assignment-mode');
+                    if (modeSelect) {
+                        modeSelect.setAttribute('data-server-value', data.assignment_mode);
+                        modeSelect.value = data.assignment_mode;
+                    }
+                }
+            } catch(e) {}
+        }
+        
+        async function loadOperatorsToGlobal() {
+            try {
+                const res = await superFetch('/api/operators');
+                companyOperators = await res.json();
+                renderAssignmentModeDropdown(); // Populate CRM dropdown options
+                
+                // Populate CRM Operator Filter
+                const opFilter = document.getElementById('crm-filter-operator');
+                if (opFilter) {
+                    let html = '<option value="all">TODOS</option><option value="unassigned">SIN ASIGNAR</option>';
+                    companyOperators.forEach(op => {
+                        html += `<option value="${op.id}">${op.full_name}</option>`;
+                    });
+                    const currentVal = opFilter.value;
+                    opFilter.innerHTML = html;
+                    if(currentVal) opFilter.value = currentVal;
+                }
+            } catch(e) {}
+        }
+
+        // --- OPERADORES ---
+        
+        function renderAssignmentModeDropdown() {
+            const modeSelect = document.getElementById('crm-assignment-mode');
+            if (!modeSelect) return;
+            const sv = modeSelect.getAttribute('data-server-value') || modeSelect.value;
+            let html = '<option value="round_robin">Autom\u00e1tico (Rotativo)</option>';
+            html += '<option value="manual">Nadie (Sin Asignar)</option>';
+            (companyOperators || []).forEach(function(op) {
+                html += '<option value="op_' + op.id + '">A Operador: ' + op.full_name + '</option>';
+            });
+            modeSelect.innerHTML = html;
+            modeSelect.value = sv;
+        }
+
+        async function loadOperators() {
+            const res = await superFetch('/api/operators');
+            const data = await res.json();
+            companyOperators = data; // Sync global state
+            renderAssignmentModeDropdown();
+            
+            document.getElementById('operators-list').innerHTML = data.map(o => `
+                <div class="bg-white p-5 rounded border border-slate-200 flex items-center justify-between hover:border-slate-300 transition-colors">
+                     <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded bg-[#1E2235] text-white flex items-center justify-center font-bold text-xs">${o.username.charAt(0).toUpperCase()}</div>
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-sm">${o.full_name}</h4>
+                            <div class="flex items-center gap-2 mt-0.5">
+                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">${o.username} • ${o.role}</p>
+                                ${o.is_active_round_robin ? 
+                                    '<span class="bg-blue-100 text-blue-600 text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter">Round Robin</span>' : 
+                                    '<span class="bg-slate-100 text-slate-400 text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter">Sin Auto-Asign.</span>'}
+                            </div>
+                        </div>
+                     </div>
+                     <div class="flex gap-2">
+                        <button onclick="openEditOperatorModal(${o.id})" class="w-8 h-8 rounded bg-slate-50 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all border border-slate-100 flex items-center justify-center">
+                            <i class="fas fa-edit text-[10px]"></i>
+                        </button>
+                        <button onclick="deleteOperator(${o.id})" class="w-8 h-8 rounded bg-slate-50 text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all border border-slate-100 flex items-center justify-center">
+                            <i class="fas fa-trash-alt text-[10px]"></i>
+                        </button>
+                     </div>
+                </div>
+            `).join('');
+        }
+
+        // --- MODALES OPS ---
+        function openNewOpModal() {
+            document.getElementById('modal-op-title').innerText = "Nuevo Operador";
+            document.getElementById('edit-op-id').value = '';
+            document.getElementById('op-name').value = '';
+            document.getElementById('op-user').value = '';
+            document.getElementById('op-user').disabled = false;
+            document.getElementById('op-email').value = '';
+            document.getElementById('op-pass').value = '';
+            document.getElementById('op-role').value = 'operador';
+            document.getElementById('op-round-robin').checked = true;
+            document.getElementById('modal-container').classList.remove('view-hidden');
+            document.getElementById('modal-operator').classList.remove('view-hidden');
+        }
+
+        function openEditOperatorModal(id) {
+            const op = companyOperators.find(o => o.id === id);
+            if (!op) return;
+
+            document.getElementById('modal-op-title').innerText = "Editar Operador";
+            document.getElementById('edit-op-id').value = op.id;
+            document.getElementById('op-name').value = op.full_name;
+            document.getElementById('op-user').value = op.username;
+            document.getElementById('op-user').disabled = true;
+            document.getElementById('op-email').value = op.email || '';
+            document.getElementById('op-pass').value = '';
+            document.getElementById('op-role').value = op.role;
+            document.getElementById('op-round-robin').checked = op.is_active_round_robin;
+            document.getElementById('modal-container').classList.remove('view-hidden');
+            document.getElementById('modal-operator').classList.remove('view-hidden');
+        }
+
+        function openNewLeadModal() { 
+            document.getElementById('modal-lead-title').innerText = "Crear Nuevo Lead";
+            document.getElementById('edit-lead-id').value = "";
+            document.getElementById('lead-name').value = "";
+            document.getElementById('lead-phone').value = "";
+            document.getElementById('lead-phone').disabled = false;
+            document.getElementById('lead-email').value = "";
+            document.getElementById('lead-address').value = "";
+            document.getElementById('lead-observations').value = "";
+            document.getElementById('lead-tags').value = "";
+            document.getElementById('lead-status').value = "No Contactado";
+            
+            document.getElementById('modal-container').classList.remove('view-hidden');
+            document.getElementById('modal-lead').classList.remove('view-hidden');
+        }
+
+        function openEditLeadModal(leadId) {
+            const lead = crmLeads.find(l => l.id === leadId);
+            if (!lead) return;
+
+            document.getElementById('modal-lead-title').innerText = "Editar Lead";
+            document.getElementById('edit-lead-id').value = lead.id;
+            document.getElementById('lead-name').value = lead.user || "";
+            document.getElementById('lead-phone').value = lead.phone || lead.id || "";
+            document.getElementById('lead-phone').disabled = true; 
+            document.getElementById('lead-email').value = lead.email || "";
+            document.getElementById('lead-address').value = lead.address || "";
+            document.getElementById('lead-observations').value = lead.observations || "";
+            document.getElementById('lead-tags').value = lead.tags || "";
+            document.getElementById('lead-status').value = lead.status;
+
+            // Cargar análisis de IA
+            loadLeadAIAnalysis(lead.id);
+
+            document.getElementById('modal-container').classList.remove('view-hidden');
+            document.getElementById('modal-lead').classList.remove('view-hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('modal-container').classList.add('view-hidden');
+            document.getElementById('modal-lead').classList.add('view-hidden');
+            document.getElementById('modal-operator').classList.add('view-hidden');
+        }
+
+        // --- REMARKETING ---
+        let remarketingLeads = [];
+        let selectedLeadIds = new Set();
+
+        async function loadRemarketingLeads() {
+            const status = document.getElementById('rm-filter-status').value;
+            const tag = document.getElementById('rm-filter-tag').value;
+            
+            try {
+                const res = await superFetch(`/api/remarketing/leads?status=${status}&tag=${tag}`);
+                remarketingLeads = await res.json();
+                filterRemarketingLeads(); // Aplica búsqueda local sobre el resultado
+            } catch(e) {
+                console.error("Error loading remarketing leads:", e);
+            }
+        }
+
+        function filterRemarketingLeads() {
+            const query = document.getElementById('rm-search').value.toLowerCase().trim();
+            const filtered = remarketingLeads.filter(l => {
+                return (l.name || "").toLowerCase().includes(query) || 
+                       (l.phone || "").includes(query);
+            });
+            renderRemarketingTable(filtered);
+        }
+
+        function renderRemarketingTable(leads) {
+            const tbody = document.getElementById('remarketing-table-body');
+            tbody.innerHTML = leads.map(l => `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="p-4 text-center">
+                        <input type="checkbox" onchange="toggleLeadSelection('${l.id}', this)" ${selectedLeadIds.has(String(l.id)) ? 'checked' : ''} class="lead-checkbox w-4 h-4 rounded border-slate-300 text-purple-600 focus:ring-purple-500">
+                    </td>
+                    <td class="p-4">
+                        <div class="font-bold text-slate-700 text-sm">${l.name}</div>
+                        <div class="text-[10px] text-slate-400 font-medium">${l.phone}</div>
+                    </td>
+                    <td class="p-4">
+                        <div class="flex flex-wrap gap-1">
+                            ${(l.tags || "").split(',').filter(t => t.trim()).map(t => `<span class="bg-slate-100 text-slate-500 text-[9px] px-1.5 py-0.5 rounded font-bold">${t.trim()}</span>`).join('')}
+                        </div>
+                    </td>
+                    <td class="p-4">
+                        <span class="px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter ${getStatusColor(l.status)}">
+                            ${l.status}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+            
+            if (leads.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-20 text-center text-slate-400 text-sm italic">No se encontraron leads para esta combinación de filtros</td></tr>`;
+            }
+        }
+
+        function toggleLeadSelection(id, checkbox) {
+            id = String(id);
+            if (checkbox.checked) selectedLeadIds.add(id);
+            else selectedLeadIds.delete(id);
+            document.getElementById('remarketing-selected-count').innerText = selectedLeadIds.size;
+        }
+
+        function toggleAllRemarketing() {
+            const master = document.getElementById('rm-select-all');
+            const checkboxes = document.querySelectorAll('.lead-checkbox');
+            checkboxes.forEach(cb => {
+                const id = cb.getAttribute('onchange').match(/'([^']+)'/)[1];
+                cb.checked = master.checked;
+                toggleLeadSelection(id, cb);
+            });
+        }
+        console.log("[LIVECHAT] Version: 2.0.5 - High-Visibility Alerts + Cache Busting Attempt");
+
+        function showRMStatus(msg, type='error') {
+            const banner = document.getElementById('rm-status-banner');
+            const text = document.getElementById('rm-status-text');
+            text.innerText = msg;
+            banner.className = `px-6 py-3 flex items-center justify-between transition-all ${type === 'error' ? 'bg-red-500 text-white' : 'bg-emerald-500 text-white'}`;
+            banner.classList.remove('hidden');
+        }
+
+        let campaignConfirmMode = false;
+
+        async function sendRemarketingCampaign() {
+            const template = document.getElementById('rm-template-select').value;
+            if (selectedLeadIds.size === 0) return showRMStatus("Selecciona al menos un lead");
+            if (!template) return showRMStatus("Selecciona una plantilla de WhatsApp");
+
+            const btn = document.getElementById('rm-send-btn');
+            
+            if (!campaignConfirmMode) {
+                campaignConfirmMode = true;
+                btn.innerHTML = '<i class="fas fa-check"></i> ¿Confirmar Envío?';
+                btn.classList.replace('bg-purple-600', 'bg-orange-500');
+                showRMStatus(`Presiona de nuevo para confirmar el envío a ${selectedLeadIds.size} leads`, 'success');
+                return;
+            }
+
+            const originalContent = '<i class="fas fa-paper-plane mr-2"></i> Enviar Campaña';
+btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+            btn.disabled = true;
+            document.getElementById('rm-status-banner').classList.add('hidden');
+
+            const templateObj = availableTemplates.find(t => t.name === template);
+            const language = templateObj ? templateObj.language : 'es_AR';
+            
+            let components = [];
+            if (templateObj && templateObj.components) {
+                const userMediaUrl = document.getElementById('rm-media-url').value;
+                const userVar1 = document.getElementById('rm-vars').value;
+
+                // Header Multimedia
+                const header = templateObj.components.find(c => c.type.toUpperCase() === 'HEADER');
+                if (header && ['IMAGE', 'VIDEO', 'DOCUMENT'].includes(header.format)) {
+                    const mediaType = header.format.toLowerCase();
+                    let finalUrl = userMediaUrl;
+                    
+                    // Fallbacks para logos conocidos (Prioridad sobre input vacio)
+                    if (!finalUrl) {
+                        const localLogo = 'https://livechat-final-356139909399.us-central1.run.app/static/logos/mmarketing.png';
+                        if (template === 'mmarketing' && mediaType === 'image') {
+                            finalUrl = localLogo;
+                        } else if ((template.includes('famiglia') || template === 'logo_famiglia') && mediaType === 'image') {
+                            finalUrl = localLogo; // Usamos el logo local si el externo falla
+                        } else if (header.example && header.example.header_handle) {
+                            finalUrl = header.example.header_handle[0];
+                        }
+                    }
+
+                    if (finalUrl) {
+                        console.log("[REMARKETING] Validating Media:", { mediaType, finalUrl });
+                        // Validación de extensión robusta (ignora query params)
+                        const cleanUrl = finalUrl.split('?')[0];
+                        const ext = cleanUrl.split('.').pop().toLowerCase();
+                        let isMatch = false;
+                        
+                        if (mediaType === 'image' && ['jpg', 'jpeg', 'png', 'webp'].includes(ext)) isMatch = true;
+                        if (mediaType === 'video' && ['mp4', 'mov'].includes(ext)) isMatch = true;
+                        if (mediaType === 'document' && ['pdf', 'doc', 'docx', 'xls', 'xlsx'].includes(ext)) isMatch = true;
+                        
+                        if (!isMatch) {
+                            const errorMsg = `Error: La plantilla requiere un ${mediaType.toUpperCase()}, pero el archivo proporcionado tiene extensión .${ext}`;
+                            console.error("[REMARKETING] Format Mismatch:", { expected: mediaType, found: ext, url: finalUrl });
+                            showRMStatus(errorMsg, 'error');
+                            btn.innerHTML = originalContent;
+                            btn.classList.replace('bg-orange-500', 'bg-purple-600');
+                            btn.disabled = false;
+                            campaignConfirmMode = false;
+                            return;
+                        }
+
+                        components.push({
+                            type: 'header',
+                            parameters: [{
+                                type: mediaType,
+                                [mediaType]: { link: finalUrl }
+                            }]
+                        });
+                    }
+                }
+
+                // Body (Variables)
+                const bodyComp = templateObj.components.find(c => c.type.toUpperCase() === 'BODY');
+                if (bodyComp && bodyComp.text.includes('{{1}}')) {
+                    components.push({
+                        type: 'body',
+                        parameters: [{
+                            type: 'text',
+                            text: userVar1 || '-' // Meta requiere al menos un caracter
+                        }]
+                    });
+                }
+            }
+            if (components.length === 0) components = null;
+
+            console.log("[REMARKETING] Final Attempt Payload:", {
+                template_name: template,
+                language_code: language,
+                components: components
+            });
+
+            try {
+                const res = await superFetch('/api/remarketing/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_ids: Array.from(selectedLeadIds),
+                        template_name: template,
+                        language_code: language,
+                        components: components
+                    })
+                });
+                const result = await res.json();
+                console.log("[REMARKETING RESULT]", result);
+
+                if (result.status === 'ok') {
+                    showRMStatus(`¡Campaña iniciada con éxito! Se enviarán ${result.dispatched} mensajes.`, 'success');
+                    selectedLeadIds.clear();
+                    document.getElementById('remarketing-selected-count').innerText = "0";
+                    document.getElementById('rm-select-all').checked = false;
+                    loadRemarketingLeads();
+                } else {
+                    showRMStatus("Error: " + (result.detail || 'Fallo en el envío'));
+                }
+            } catch(e) {
+                console.error(e);
+                showRMStatus("Error de conexión al servidor");
+            } finally {
+                btn.innerHTML = originalContent;
+                btn.classList.replace('bg-orange-500', 'bg-purple-600');
+                btn.disabled = false;
+                campaignConfirmMode = false;
+            }
+        }
+
+        let availableTemplates = [];
+
+        async function loadWhatsAppTemplates() {
+            const select = document.getElementById('rm-template-select');
+            const errorP = document.getElementById('rm-template-error');
+            select.innerHTML = '<option value="">Cargando...</option>';
+            errorP.classList.add('hidden');
+            
+            try {
+                const res = await superFetch('/api/remarketing/templates');
+                const data = await res.json();
+                if (data.error) {
+                    select.innerHTML = '<option value="">Error al cargar</option>';
+                    errorP.innerText = data.error;
+                    errorP.classList.remove('hidden');
+                    return;
+                }
+                
+                availableTemplates = data.templates || [];
+                if (availableTemplates.length === 0) {
+                    select.innerHTML = '<option value="">Sin plantillas aprobadas</option>';
+                    return;
+                }
+                
+                select.innerHTML = '<option value="">Selecciona una plantilla...</option>' + 
+                    availableTemplates.map(t => `<option value="${t.name}">${t.name}</option>`).join('');
+                
+            } catch(e) {
+                select.innerHTML = '<option value="">Error de conexión</option>';
+            }
+        }
+
+        function updateTemplatePreview() {
+            const name = document.getElementById('rm-template-select').value;
+            const preview = document.getElementById('rm-template-preview');
+            const bodyDiv = document.getElementById('rm-preview-body');
+            const dynamicContainer = document.getElementById('rm-dynamic-inputs');
+            const mediaContainer = document.getElementById('rm-media-input-container');
+            const varsContainer = document.getElementById('rm-vars-input-container');
+            
+            if (!name) {
+                preview.classList.add('hidden');
+                dynamicContainer.classList.add('hidden');
+                return;
+            }
+            
+            const t = availableTemplates.find(x => x.name === name);
+            if (t) {
+                let previewHtml = '';
+                let hasMedia = false;
+                let hasVars = false;
+
+                // Header
+                const header = t.components.find(c => c.type.toUpperCase() === 'HEADER');
+                if (header) {
+                    if (['IMAGE', 'VIDEO', 'DOCUMENT'].includes(header.format)) {
+                        hasMedia = true;
+                        // Use existing input URL if present and starts with http, otherwise use example
+                        const mediaInput = document.getElementById('rm-media-url');
+                        const exUrl = (header.example && header.example.header_handle) ? header.example.header_handle[0] : '';
+                        let finalPreviewUrl = exUrl;
+                        if (mediaInput && mediaInput.value && mediaInput.value.startsWith('http')) {
+                            finalPreviewUrl = mediaInput.value;
+                        }
+
+                        if (header.format === 'IMAGE' && finalPreviewUrl) {
+                            previewHtml += `<div class="mb-2"><img src="${finalPreviewUrl}" class="rounded max-w-full h-auto" style="max-height: 120px;"></div>`;
+                        } else {
+                            previewHtml += `<div class="mb-2 bg-black/10 rounded flex items-center justify-center p-4 text-slate-400 text-[10px] border border-slate-200">
+                                <i class="fas fa-${header.format.toLowerCase()} mr-1"></i> [${header.format} Template]
+                            </div>`;
+                        }
+                        // Set default URL in input if empty or from known hardcodes
+                        if (mediaInput.dataset.lastTemplate !== name) {
+                             mediaInput.value = ""; // Limpiar antes de asignar para evitar concatenaciones
+                             const localLogo = 'https://livechat-final-356139909399.us-central1.run.app/static/logos/mmarketing.png';
+                             if (name === 'mmarketing' && header.format === 'IMAGE') {
+                                 mediaInput.value = localLogo;
+                             } else if (name.includes('famiglia') && header.format === 'IMAGE') {
+                                 mediaInput.value = localLogo;
+                             } else {
+                                 mediaInput.value = exUrl;
+                             }
+                             mediaInput.dataset.lastTemplate = name;
+                        }
+
+                        // Advertencia de URL temporal o formato incorrecto
+                        const cleanUrl = mediaInput.value.split('?')[0];
+                        const ext = cleanUrl.split('.').pop().toLowerCase();
+                        const mediaType = header.format.toLowerCase();
+                        let isMatch = false;
+                        if (mediaType === 'image' && ['jpg', 'jpeg', 'png', 'webp'].includes(ext)) isMatch = true;
+                        if (mediaType === 'video' && ['mp4', 'mov'].includes(ext)) isMatch = true;
+                        if (mediaType === 'document' && ['pdf', 'doc', 'docx', 'xls', 'xlsx'].includes(ext)) isMatch = true;
+                        // NO forzar isMatch true para scontent aqui tampoco para ser consistentes
+
+                        const errorBanner = document.getElementById('rm-template-error');
+                        if (mediaInput.value && !isMatch) {
+                            const errorMsg = `⚠ Error: Formato incompatible. El template requiere ${mediaType.toUpperCase()} (.${mediaType === 'image' ? 'jpg/png' : mediaType === 'video' ? 'mp4' : 'pdf'})`;
+                            errorBanner.innerText = errorMsg;
+                            errorBanner.classList.remove('hidden');
+                        } else if (mediaInput.value.includes('scontent.whatsapp.net')) {
+                            errorBanner.innerText = "⚠ Usando link de Meta. No olvides que debe coincidir con el formato del template.";
+                            errorBanner.classList.remove('hidden');
+                        } else {
+                            errorBanner.classList.add('hidden');
+                        }
+                    }
+                }
+
+                // Body
+                const bodyComp = t.components.find(c => c.type.toUpperCase() === 'BODY');
+                if (bodyComp) {
+                    previewHtml += `<div class="italic">${bodyComp.text.replace(/\n/g, '<br>')}</div>`;
+                    if (bodyComp.text.includes('{{1}}')) {
+                        hasVars = true;
+                    }
+                }
+
+                bodyDiv.innerHTML = previewHtml || "Sin previsualización";
+                preview.classList.remove('hidden');
+
+                // Toggle dynamic inputs
+                if (hasMedia || hasVars) {
+                    dynamicContainer.classList.remove('hidden');
+                    mediaContainer.classList.toggle('hidden', !hasMedia);
+                    varsContainer.classList.toggle('hidden', !hasVars);
+                } else {
+                    dynamicContainer.classList.add('hidden');
+                }
+            } else {
+                preview.classList.add('hidden');
+                dynamicContainer.classList.add('hidden');
+            }
+        }
+
+        // Refrescar preview cuando cambia la URL manualmente
+        document.getElementById('rm-media-url')?.addEventListener('input', () => {
+            const select = document.getElementById('rm-template-select');
+            if (select.value) updateTemplatePreview(select.value);
+        });
+
+        async function uploadRemarketingMedia(input) {
+            if (!input.files || !input.files[0]) return;
+            const file = input.files[0];
+            const icon = document.getElementById('rm-upload-icon');
+            const mediaUrlInput = document.getElementById('rm-media-url');
+            
+            // UI Feedback
+            icon.classList.replace('fa-cloud-upload-alt', 'fa-spinner');
+            icon.classList.add('fa-spin');
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                const res = await superFetch('/api/remarketing/upload', {
+                    method: 'POST',
+                    body: formData,
+                    // No poner cabecera Content-Type para que el navegador use boundary
+                });
+                const data = await res.json();
+                if (data.url) {
+                    mediaUrlInput.value = data.url;
+                    mediaUrlInput.dataset.lastTemplate = document.getElementById('rm-template-select').value;
+                    updateTemplatePreview();
+                    showRMStatus("Archivo subido con éxito", "success");
+                    // Limpiar el error si existía uno de URL temporal
+                    document.getElementById('rm-template-error').classList.add('hidden');
+                } else {
+                    showRMStatus("Error al subir archivo: " + (data.detail || 'Fallo desconocido'), 'error');
+                }
+            } catch(e) {
+                showRMStatus("Error de conexión al subir archivo", 'error');
+            } finally {
+                icon.classList.replace('fa-spinner', 'fa-cloud-upload-alt');
+                icon.classList.remove('fa-spin');
+                input.value = ''; // Reset input
+            }
+        }
+
+        async function saveLead() {
+            const editId = document.getElementById('edit-lead-id').value;
+            const name = (document.getElementById('lead-name').value || "").trim();
+            const phoneInput = (document.getElementById('lead-phone').value || "").trim();
+            const email = document.getElementById('lead-email').value;
+            const address = document.getElementById('lead-address').value;
+            const observations = document.getElementById('lead-observations').value;
+            const tags = document.getElementById('lead-tags').value;
+            const statusValue = document.getElementById('lead-status').value;
+
+            if (!name || !phoneInput) {
+                alert("Nombre y teléfono son obligatorios");
+                return;
+            }
+
+            // Normalización de teléfono en el cliente
+            const cleanPhone = phoneInput.replace(/[+\-\s()]/g, '');
+
+            const payload = {
+                full_name: name,
+                phone: phoneInput, // Guardamos el original para referencia
+                email: email,
+                address: address,
+                observations: observations,
+                tags: tags,
+                crm_status: statusValue
+            };
+
+            let res;
+            try {
+                if (editId) {
+                    // Update
+                    res = await superFetch('/api/leads/' + editId, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                } else {
+                    // Create
+                    payload.id = cleanPhone; // El ID es el número limpio
+                    res = await superFetch('/api/leads', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                }
+
+                if (res.ok) { 
+                    closeModal(); 
+                    loadCRMLeads(); 
+                    if (activeUserId === editId) loadConversations();
+                } else { 
+                    let errorMsg = "No se pudo guardar el lead";
+                    try {
+                        const err = await res.json();
+                        errorMsg = err.detail || errorMsg;
+                    } catch(e) {
+                        // Si no es JSON, capturar el texto plano si existe
+                        errorMsg = await res.text() || errorMsg;
+                    }
+                    alert("Error: " + errorMsg); 
+                }
+            } catch (err) {
+                console.error("[CRM] Error salvando lead:", err);
+                alert("Error de conexión o error crítico del servidor.");
+            }
+        }
+
+        async function saveOperator() {
+            const editId = document.getElementById('edit-op-id').value;
+            const name = document.getElementById('op-name').value;
+            const user = document.getElementById('op-user').value;
+            const email = document.getElementById('op-email').value;
+            const pass = document.getElementById('op-pass').value;
+            const role = document.getElementById('op-role').value;
+            const roundRobin = document.getElementById('op-round-robin').checked;
+            
+            if (!name || !user) return;
+            if (!editId && !pass) { alert("La contraseña es obligatoria para nuevos usuarios."); return; }
+
+            let res;
+            if (editId) {
+                const payload = { full_name: name, role: role, email: email || null, is_active_round_robin: roundRobin };
+                if (pass) payload.password = pass;
+                res = await superFetch('/api/operators/' + editId, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            } else {
+                res = await superFetch('/api/operators', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: user, password: pass, full_name: name, role: role, email: email || null, is_active_round_robin: roundRobin })
+                });
+            }
+            if (res.ok) { closeModal(); loadOperators(); }
+            else { alert("Error al guardar operador."); }
+        }
+
+        async function deleteOperator(id) {
+            if (!confirm("¿Seguro que quieres eliminar este operador? Sus leads serán desasignados.")) return;
+            const res = await superFetch('/api/operators/' + id, { method: 'DELETE' });
+            if (res.ok) loadOperators();
+            else alert("Error al eliminar.");
+        }
+
+        // --- WEBSOCKET ---
+        let ws;
+        function connectWebSocket() {
+            if (!currentUser || ws) return;
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            ws = new WebSocket(`${protocol}//${window.location.host}/ws/${currentUser.username}`);
+            
+            ws.onmessage = function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    if (data.event === "new_message") {
+                        if (currentView === 'conversations') {
+                            loadConversations();
+                            if (activeUserId === data.user_id) {
+                                loadMessages();
+                            }
+                        }
+                    } else if (data.event === "new_lead_assigned") {
+                        if (currentUser.role === 'admin' || currentUser.role === 'super_admin' || currentUser.id === data.assigned_to) {
+                            showLeadAlert(data.lead_name || 'Nuevo', data.text);
+                            if (document.getElementById('view-crm').offsetParent !== null) loadLeads();
+                        }
+                    } else if (data.event === "bot_status_change") {
+                        if (activeUserId === data.user_id) {
+                            activeUserBotActive = data.is_bot_active;
+                            renderBotStatus();
+                        }
+                        if (currentView === 'conversations' || currentView === 'crm') {
+                            loadConversations();
+                            if (currentView === 'crm') loadCRMLeads();
+                        }
+                    }
+                } catch (e) {}
+            };
+            
+            ws.onclose = function() {
+                ws = null;
+                if (currentUser) setTimeout(connectWebSocket, 5000);
+            };
+        }
+
+        function playDing() {
+            try {
+                const Ctx = window.AudioContext || window.webkitAudioContext;
+                const ctx = new Ctx();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = "sine";
+                osc.frequency.setValueAtTime(800, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.5, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.3);
+            } catch(e) {}
+        }
+
+        function showLeadAlert(name, resumen) {
+            playDing();
+            const t = document.createElement('div');
+            // Adding a smooth slide-in/bounce animation using standard tailwind utilities.
+            t.className = "fixed top-6 right-6 z-[9999] bg-[#1E2235] text-white p-5 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-start gap-4 border border-slate-700 transition-all duration-500 translate-x-0";
+            
+            // Un pequeño efecto de aparicion
+            t.style.animation = "bounce 1s ease"; 
+
+            t.innerHTML = `
+                <div class="mt-1 bg-red-500/20 p-2 rounded-full text-red-400">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                </div>
+                <div>
+                    <h3 class="font-black text-lg text-white">¡Lead Caliente Asignado!</h3>
+                    <p class="text-sm font-semibold mt-1 text-slate-300">🔥 ${name} quiere viajar</p>
+                    <p class="text-xs text-slate-400 mt-2 line-clamp-2 max-w-xs leading-relaxed italic border-l-2 border-slate-600 pl-2">"${resumen}"</p>
+                </div>
+                <button onclick="this.parentElement.remove(); openCRM();" class="ml-2 bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-500 text-sm font-bold transition-colors">Abrir CRM</button>
+            `;
+            document.body.appendChild(t);
+            setTimeout(() => { 
+                if(t.parentElement) {
+                    t.style.opacity = '0'; 
+                    t.style.transform = 'translateY(-20px)';
+                    setTimeout(() => t.remove(), 500);
+                } 
+            }, 12000); // 12 seconds
+        }
+
+        // --- SUPER ADMIN ---
+        async function loadSuperAdminData() {
+            const res = await fetch('/api/super/companies', { headers: { 'Authorization': 'Bearer ' + auth_token }});
+            const data = await res.json();
+            
+            document.getElementById('super-stat-companies').innerText = data.length;
+            document.getElementById('super-stat-leads').innerText = data.reduce((a, b) => a + (b.leads || 0), 0);
+            document.getElementById('super-stat-msgs').innerText = data.reduce((a, b) => a + (b.messages || 0), 0);
+            
+            let html = "";
+            data.forEach(c => {
+                const safeName = (c.name || '').replace(/'/g, "\\'");
+                const statusBtnClass = c.is_active ? 'bg-red-500 hover:bg-red-600' : 'bg-emerald-500 hover:bg-emerald-600';
+                const statusBtnText = c.is_active ? 'Suspender' : 'Activar';
+                const shortUrl = `${window.location.origin}/wh/${c.webhook_token}`;
+                
+                // VERSION DESKTOP (TABLE ROW)
+                html += `
+                <tr class="hidden md:table-row border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                    <td class="p-6 min-w-[300px]">
+                        <p class="font-black text-slate-800 text-sm mb-2">${c.name}</p>
+                        <div class="flex items-center gap-2 bg-slate-50 border border-slate-100 p-2 rounded-xl group relative">
+                            <code class="text-[9px] text-blue-600 font-mono flex-1 select-all truncate" title="${shortUrl}">
+                                ${shortUrl}
+                            </code>
+                            <button onclick="copyToClipboard('${shortUrl}', this)" 
+                                    class="bg-white hover:bg-slate-50 text-slate-400 hover:text-indigo-600 border border-slate-100 p-1.5 rounded-lg transition-all shadow-sm">
+                                <i class="fas fa-copy text-xs"></i>
+                            </button>
+                        </div>
+                    </td>
+                    <td class="p-6 text-center">
+                        <div class="flex flex-col items-center gap-2">
+                            <img src="${c.logo_url || '/static/logo-mmarketing%20iso.png'}" 
+                                 class="w-10 h-10 rounded-xl object-contain border border-slate-100 bg-slate-50 p-1"
+                                 onerror="this.src='/static/logo-mmarketing%20iso.png'">
+                            <button onclick="openLogoModal('${c.id}', '${safeName}')" 
+                                    class="text-[8px] font-black uppercase text-blue-600 hover:underline">
+                                Logo
+                            </button>
+                        </div>
+                    </td>
+                    <td class="p-6">
+                        <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase ${c.is_active ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}">
+                            ${c.is_active ? 'Activa' : 'Suspendida'}
+                        </span>
+                    </td>
+                    <td class="p-6 text-center font-bold text-slate-600">${c.leads || 0}</td>
+                    <td class="p-6 text-center font-bold text-slate-600">${c.messages || 0}</td>
+                    <td class="p-6">
+                        <div class="flex items-center justify-center gap-2 min-w-[220px]">
+                            <button onclick="enterCompany('${c.id}', '${safeName}')" 
+                                    class="bg-blue-600 text-white text-[9px] font-black uppercase px-4 py-2.5 rounded-xl hover:bg-blue-700 transition shadow-sm">
+                                Entrar
+                            </button>
+                            <button onclick="openSuperOperatorsModal('${c.id}', '${safeName}')" 
+                                    class="bg-indigo-600 text-white p-2.5 rounded-xl hover:bg-indigo-700 transition" title="Usuarios">
+                                <i class="fas fa-users text-xs"></i>
+                            </button>
+                            <button onclick="editCompanyName('${c.id}', '${safeName}')" 
+                                    class="bg-slate-600 text-white p-2.5 rounded-xl hover:bg-slate-700 transition" title="Editar Nombre">
+                                <i class="fas fa-edit text-xs"></i>
+                            </button>
+                            <button onclick="toggleCompanyStatus('${c.id}', ${c.is_active})" 
+                                    class="${statusBtnClass} text-white p-2.5 rounded-xl transition" title="${statusBtnText}">
+                                <i class="fas ${c.is_active ? 'fa-ban' : 'fa-check'} text-xs"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                
+                <!-- VERSION MOBILE (CARD) -->
+                <tr class="md:hidden">
+                    <td colspan="6" class="p-4">
+                        <div class="bg-slate-50 border border-slate-100 rounded-3xl p-6 space-y-4 shadow-sm">
+                            <div class="flex items-center gap-4">
+                                <img src="${c.logo_url || '/static/logo-mmarketing%20iso.png'}" 
+                                     class="w-12 h-12 rounded-2xl object-contain bg-white border border-slate-100 p-2 shadow-sm"
+                                     onerror="this.src='/static/logo-mmarketing%20iso.png'">
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="font-black text-slate-800 truncate">${c.name}</h4>
+                                    <span class="px-2 py-0.5 rounded-full text-[8px] font-black uppercase ${c.is_active ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}">
+                                        ${c.is_active ? 'Activa' : 'Suspendida'}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="bg-white p-3 rounded-2xl border border-slate-100 text-center">
+                                    <p class="text-[8px] font-black text-slate-400 uppercase">Leads</p>
+                                    <p class="text-sm font-black text-slate-700">${c.leads || 0}</p>
+                                </div>
+                                <div class="bg-white p-3 rounded-2xl border border-slate-100 text-center">
+                                    <p class="text-[8px] font-black text-slate-400 uppercase">Mensajes</p>
+                                    <p class="text-sm font-black text-slate-700">${c.messages || 0}</p>
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap gap-2 pt-2">
+                                <button onclick="enterCompany('${c.id}', '${safeName}')" class="flex-1 bg-blue-600 text-white text-[10px] font-black uppercase py-3 rounded-xl shadow-lg shadow-blue-100">Entrar</button>
+                                <button onclick="openSuperOperatorsModal('${c.id}', '${safeName}')" class="bg-indigo-100 text-indigo-600 w-12 h-12 rounded-xl flex items-center justify-center"><i class="fas fa-users text-sm"></i></button>
+                                <button onclick="editCompanyName('${c.id}', '${safeName}')" class="bg-slate-200 text-slate-600 w-12 h-12 rounded-xl flex items-center justify-center"><i class="fas fa-edit text-sm"></i></button>
+                                <button onclick="toggleCompanyStatus('${c.id}', ${c.is_active})" class="${statusBtnClass} text-white w-12 h-12 rounded-xl flex items-center justify-center"><i class="fas ${c.is_active ? 'fa-ban' : 'fa-check'} text-sm"></i></button>
+                            </div>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+            document.getElementById('super-companies-table').innerHTML = html;
+        }
+
+        function enterCompany(id, name) {
+            console.log("ENTERING COMPANY:", id, name);
+            localStorage.setItem('impersonate_company_id', id);
+            localStorage.setItem('impersonate_company_name', name);
+            showToast(`Entrando a ${name}...`, "info");
+            // Forzamos recarga para que TODO el sistema (incluyendo WebSockets) se reinicie con el nuevo ID
+            setTimeout(() => window.location.href = '/', 800);
+        }
+
+        async function openSuperOperatorsModal(companyId, companyName) {
+            document.getElementById('super-op-company-id').value = companyId;
+            document.getElementById('super-op-company-name').innerText = companyName;
+            document.getElementById('modal-super-operators').classList.remove('hidden');
+            loadSuperOperators(companyId);
+        }
+
+        async function loadSuperOperators(companyId) {
+            const list = document.getElementById('super-op-list');
+            list.innerHTML = '<p class="text-[10px] text-slate-400">Cargando...</p>';
+            
+            try {
+                const res = await fetch(`/api/super/companies/${companyId}/operators`, {
+                    headers: { 'Authorization': 'Bearer ' + auth_token }
+                });
+                const data = await res.json();
+                
+                list.innerHTML = data.map(op => `
+                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 hover:border-blue-200 transition-all">
+                        <div>
+                            <p class="text-xs font-bold text-slate-800">${op.full_name}</p>
+                            <p class="text-[9px] text-slate-500">${op.email} • <span class="uppercase font-black text-blue-500">${op.role}</span></p>
+                        </div>
+                        <button onclick="superDeleteOperator(${op.id})" class="text-red-400 hover:text-red-600 p-2 transition-colors">
+                            <i class="fas fa-trash-alt text-xs"></i>
+                        </button>
+                    </div>
+                `).join('') || '<p class="text-xs text-slate-400 text-center py-4">No hay operadores registrados.</p>';
+            } catch(e) {
+                list.innerHTML = '<p class="text-xs text-red-500">Error al cargar operadores.</p>';
+            }
+        }
+
+        async function superCreateOperator() {
+            const companyId = document.getElementById('super-op-company-id').value;
+            const fullName = document.getElementById('super-op-fullname').value;
+            const email = document.getElementById('super-op-email').value;
+            const pass = document.getElementById('super-op-pass').value;
+
+            if (!fullName || !email || !pass) return alert("Completa todos los campos");
+
+            const res = await fetch('/api/operators', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + auth_token
+                },
+                body: JSON.stringify({
+                    username: email.split('@')[0],
+                    password: pass,
+                    full_name: fullName,
+                    email: email,
+                    target_company_id: companyId
+                })
+            });
+
+            if (res.ok) {
+                showToast("Operador creado exitosamente", "success");
+                document.getElementById('super-op-fullname').value = '';
+                document.getElementById('super-op-email').value = '';
+                document.getElementById('super-op-pass').value = '';
+                loadSuperOperators(companyId);
+            } else {
+                const err = await res.json();
+                alert(err.detail || "Error al crear operador");
+            }
+        }
+
+        async function superDeleteOperator(id) {
+            if (!confirm("¿Eliminar este operador permanentemente?")) return;
+            const companyId = document.getElementById('super-op-company-id').value;
+
+            const res = await fetch(`/api/super/operators/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + auth_token }
+            });
+
+            if (res.ok) {
+                showToast("Operador eliminado", "success");
+                loadSuperOperators(companyId);
+            } else {
+                alert("Error al eliminar");
+            }
+        }
+
+        async function toggleCompanyStatus(id, currentStatus) {
+            const newStatus = !currentStatus;
+            const label = newStatus ? "Activar" : "Suspender";
+            if (!confirm(`¿Estás seguro de que quieres ${label} esta empresa?`)) return;
+
+            const res = await fetch(`/api/super/companies/${id}`, {
+                method: 'PATCH',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + auth_token
+                },
+                body: JSON.stringify({ is_active: newStatus })
+            });
+
+            if (res.ok) {
+                loadSuperAdminData();
+                showToast(`Empresa ${newStatus ? 'activada' : 'suspendida'} correctamente`);
+            } else {
+                alert("Error al cambiar estado");
+            }
+        }
+
+        async function editCompanyName(id, currentName) {
+            const newName = prompt("Nuevo nombre para la empresa:", currentName);
+            if (!newName || newName === currentName) return;
+
+            const res = await fetch(`/api/super/companies/${id}`, {
+                method: 'PATCH',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + auth_token
+                },
+                body: JSON.stringify({ name: newName })
+            });
+
+            if (res.ok) {
+                loadSuperAdminData();
+                showToast("Nombre actualizado correctamente");
+            } else {
+                const err = await res.json();
+                alert("Error al actualizar: " + (err.detail || "Error desconocido"));
+            }
+        }
+
+        let impersonatedCompanyId = null;
+        let impersonatedCompanyName = null;
+
+        function enterCompany(id, name) {
+            console.log("ENTERING COMPANY:", id, name);
+            localStorage.setItem('impersonate_company_id', id);
+            localStorage.setItem('impersonate_company_name', name);
+            showToast(`Entrando a ${name}...`, "info");
+            // Forzamos recarga para que el sistema reconozca el nuevo ID en el arranque
+            setTimeout(() => window.location.href = '/', 800);
+        }
+
+        function exitImpersonation() {
+            localStorage.removeItem('impersonate_company_id');
+            localStorage.removeItem('impersonate_company_name');
+            impersonatedCompanyId = null;
+            impersonatedCompanyName = null;
+            document.getElementById('impersonation-banner').classList.add('hidden');
+            window.location.href = '/';
+        }
+
+        async function superFetch(url, options = {}) {
+            let fullUrl = url;
+            // Usamos la variable global o el localStorage como respaldo
+            const impId = localStorage.getItem('impersonate_company_id') || impersonatedCompanyId;
+            
+            // CACHE-BUSTING
+            const separator = fullUrl.includes('?') ? '&' : '?';
+            fullUrl += `${separator}v=${Date.now()}`;
+            
+            if (impId && impId !== 'undefined' && impId !== 'null') {
+                fullUrl += `&company_id=${impId}`;
+            }
+
+            if (!options.headers) options.headers = {};
+            options.headers['Authorization'] = 'Bearer ' + auth_token;
+            
+            if (impId && impId !== 'undefined' && impId !== 'null') {
+                options.headers['X-Tenant-ID'] = impId;
+                options.headers['X-Company-ID'] = impId;
+            }
+            
+            console.log(`[superFetch] Calling: ${fullUrl} with ID: ${impId}`);
+            return fetch(fullUrl, options);
+        }
+
+        function copyToClipboard(text, btn) {
+            navigator.clipboard.writeText(text).then(() => {
+                const tip = btn.parentElement.querySelector('.tip');
+                if (tip) {
+                    tip.style.opacity = '1';
+                    setTimeout(() => tip.style.opacity = '0', 2000);
+                }
+                const icon = btn.querySelector('i');
+                if (icon) {
+                    icon.classList.replace('fa-copy', 'fa-check');
+                    icon.classList.add('text-emerald-500');
+                    setTimeout(() => {
+                        icon.classList.replace('fa-check', 'fa-copy');
+                        icon.classList.remove('text-emerald-500');
+                    }, 2000);
+                }
+            });
+        }
+
+
+        async function loadLeadAIAnalysis(userId) {
+            const container = document.getElementById('ai-insights-container');
+            container.classList.add('hidden');
+            
+            const res = await superFetch(`/api/leads/${userId}/analysis`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.sentiment_score !== "---") {
+                    container.classList.remove('hidden');
+                    document.getElementById('ai-sentiment').innerText = data.sentiment_score;
+                    document.getElementById('ai-summary').innerText = `"${data.summary}"`;
+                    document.getElementById('ai-temp-text').innerText = `${data.temperature}%`;
+                    document.getElementById('ai-temp-bar').style.width = `${data.temperature}%`;
+                    
+                    const intentsDiv = document.getElementById('ai-intents');
+                    intentsDiv.innerHTML = (data.top_intents || "").split(',').map(t => `<span class="bg-indigo-100 text-indigo-600 text-[9px] font-black px-2 py-0.5 rounded-full border border-indigo-200">#${t.trim()}</span>`).join('');
+                }
+            }
+        }
+
+        async function analyzeLeadFromTable(userId) {
+            // Un pequeño efecto de carga visual
+            const res = await superFetch(`/api/leads/${userId}/analyze`, { method: 'POST' });
+            if (res.ok) {
+                openEditLeadModal(userId); // Abrimos el modal para mostrar el resultado
+            } else {
+                const err = await res.json();
+                alert("No se pudo analizar: " + (err.detail || "Error desconocido"));
+            }
+        }
+
+        async function analyzeCurrentLead() {
+            const userId = document.getElementById('edit-lead-id').value;
+            if (!userId) return;
+            
+            const btn = document.getElementById('btn-analyze-ai');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-magic fa-spin"></i> ANALIZANDO...';
+            
+            try {
+                const res = await superFetch(`/api/leads/${userId}/analyze`, { method: 'POST' });
+                if (res.ok) {
+                    await loadLeadAIAnalysis(userId);
+                } else {
+                    alert("Error al analizar: Asegúrate de que el lead tenga mensajes.");
+                }
+            } catch (e) {
+                console.error(e);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+
+        // --- DASHBOARD STATS ---
+        let charts = {};
+        async function loadStatsDashboard() {
+            const res = await superFetch('/api/stats/summary');
+            const data = await res.json();
+            
+            if (document.getElementById('stat-avg-temp')) document.getElementById('stat-avg-temp').innerText = `${data.average_temperature}%`;
+            if (document.getElementById('stat-total-leads')) document.getElementById('stat-total-leads').innerText = data.kpis.total_leads;
+            
+            renderChart('chart-status', 'pie', data.status_distribution, ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#6366f1']);
+            renderChart('chart-sentiment', 'doughnut', data.sentiment_distribution, ['#10b981', '#94a3b8', '#ef4444']);
+        }
+
+        function renderChart(canvasId, type, dataMap, colors) {
+            if (charts[canvasId]) charts[canvasId].destroy();
+            
+            const labels = Object.keys(dataMap);
+            const values = Object.values(dataMap);
+            
+            charts[canvasId] = new Chart(document.getElementById(canvasId), {
+                type: type,
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: colors,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { size: 10, weight: 'bold' }, usePointStyle: true } }
+                    }
+                }
+            });
+        }
+
+        // --- LOGOS & BRANDING ---
+        async function saveAdminCompanyNameInline(btn) {
+            const name = document.getElementById('inline-company-name-input').value;
+            if (!name) return;
+            const originalIcon = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>';
+            btn.disabled = true;
+            try {
+                const res = await fetch(`/api/companies/${currentUser.company_id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + auth_token },
+                    body: JSON.stringify({ name: name })
+                });
+                if(res.ok) {
+                    const data = await res.json();
+                    currentUser.company_name = data.name;
+                    showToast("✅ Nombre actualizado correctamente");
+                }
+            } catch (e) {
+                console.error(e);
+            } finally {
+                btn.innerHTML = originalIcon;
+                btn.disabled = false;
+            }
+        }
+        
+        // --- DATA EXPORT ---
+        async function downloadLeadsBackup(btn) {
+            const originalIcon = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin text-sm"></i> Exportando...';
+            btn.disabled = true;
+            try {
+                const res = await superFetch('/api/backup/leads');
+                if (res.ok) {
+                    const data = await res.json();
+                    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `backup_leads_${new Date().getTime()}.json`;
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                    showToast("✅ Backup descargado correctamente");
+                } else {
+                    alert("No se pudo exportar el backup.");
+                }
+            } catch (e) {
+                console.error(e);
+            } finally {
+                btn.innerHTML = originalIcon;
+                btn.disabled = false;
+            }
+        }
+
+        function openLogoModal(id, name) {
+            document.getElementById('logo-company-id').value = id;
+            document.getElementById('logo-company-name').innerText = name;
+            document.getElementById('logo-file-input').value = ""; // reset
+            document.getElementById('modal-logo-upload').classList.remove('hidden');
+        }
+
+        function closeLogoModal() {
+            document.getElementById('modal-logo-upload').classList.add('hidden');
+        }
+
+        async function uploadLogo() {
+            const fileInput = document.getElementById('logo-file-input');
+            const companyId = document.getElementById('logo-company-id').value;
+            if(!fileInput.files[0]) return;
+            
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            
+            const btn = event.currentTarget;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Subiendo...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`/api/companies/${companyId}/logo`, {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + auth_token },
+                    body: formData
+                });
+                
+                if(res.ok) {
+                    const data = await res.json();
+                    closeLogoModal();
+                    
+                    if (currentUser.role === 'super_admin') {
+                         loadSuperAdminData();
+                    }
+                    if (currentUser.role === 'admin' && companyId === currentUser.company_id) {
+                         currentUser.logo_url = data.logo_url;
+                         document.getElementById('company-logo-container').classList.remove('hidden');
+                         document.getElementById('sidebar-company-logo').src = data.logo_url.startsWith('data:') ? data.logo_url : data.logo_url + '?t=' + new Date().getTime();
+                         
+                         if(document.getElementById('inline-branding-logo-preview')) {
+                             document.getElementById('inline-branding-logo-preview').src = data.logo_url.startsWith('data:') ? data.logo_url : data.logo_url + '?t=' + new Date().getTime();
+                             document.getElementById('inline-branding-logo-preview').classList.remove('hidden');
+                             document.getElementById('inline-branding-no-logo').classList.add('hidden');
+                         }
+                    }
+                    showToast("✅ Logo actualizado correctamente");
+                } else {
+                    alert("Error al subir logo");
+                }
+            } catch (e) {
+                console.error(e);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.className = "fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-2xl shadow-xl z-[9999] font-bold text-sm transition-all duration-500 opacity-0 translate-y-10";
+            toast.innerText = msg;
+            document.body.appendChild(toast);
+            
+            // Trigger animation
+            setTimeout(() => {
+                toast.classList.remove('opacity-0', 'translate-y-10');
+            }, 10);
+            
+            // Remove after 3s
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-10');
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+
+        async function openSuperAllOperatorsModal() {
+            document.getElementById('modal-super-all-operators').classList.remove('hidden');
+            const list = document.getElementById('super-all-ops-list');
+            list.innerHTML = '<tr><td colspan="4" class="py-10 text-center text-slate-400 text-xs">Cargando usuarios...</td></tr>';
+            
+            try {
+                const res = await fetch('/api/super/all-operators', {
+                    headers: { 'Authorization': 'Bearer ' + auth_token }
+                });
+                const data = await res.json();
+                
+                list.innerHTML = data.map(op => `
+                    <tr>
+                        <td class="py-4">
+                            <p class="text-xs font-bold text-slate-800">${op.email}</p>
+                        </td>
+                        <td class="py-4 text-xs text-slate-600 font-medium">${op.full_name}</td>
+                        <td class="py-4">
+                            <span class="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-600 text-[9px] font-black uppercase tracking-tighter border border-blue-100">
+                                ${op.company_name}
+                            </span>
+                        </td>
+                        <td class="py-4">
+                            <span class="text-[9px] font-black uppercase ${op.role === 'admin' ? 'text-indigo-600' : 'text-slate-400'}">
+                                ${op.role}
+                            </span>
+                        </td>
+                    </tr>
+                `).join('') || '<tr><td colspan="4" class="py-10 text-center text-slate-400 text-xs">No hay usuarios registrados.</td></tr>';
+            } catch(e) {
+                list.innerHTML = '<tr><td colspan="4" class="py-10 text-center text-red-500 text-xs">Error al cargar usuarios.</td></tr>';
+            }
+        }
+
+        // --- INIT ---
+        const savedImpName = localStorage.getItem('impersonate_company_name');
+        if (savedImpName) {
+            document.getElementById('impersonate-name').innerText = savedImpName;
+            document.getElementById('impersonation-banner').classList.remove('hidden');
+        }
+        checkAuth();
+    </script>
+</body>
+</html>
