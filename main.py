@@ -30,9 +30,15 @@ import uuid
 
 load_dotenv()
 
+from rate_limit import limiter
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+
 # models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Asegurar que exista directorio para logos
 OS_LOGOS_DIR = "static/logos"
@@ -546,7 +552,8 @@ manager = ConnectionManager()
 # --- REGISTRO Y AUTH ---
 
 @app.post("/api/register")
-async def register_company(data: CompanyRegisterSchema, db: Session = Depends(get_db)):
+@limiter.limit("3/day")
+async def register_company(request: Request, data: CompanyRegisterSchema, db: Session = Depends(get_db)):
     # Verificar si el email ya existe
     db_op = db.query(models.Operator).filter(models.Operator.email == data.admin_email).first()
     if db_op:
@@ -570,7 +577,9 @@ async def register_company(data: CompanyRegisterSchema, db: Session = Depends(ge
     return {"status": "ok", "company_id": new_company.id, "webhook_token": new_company.webhook_token}
 
 @app.post("/token", response_model=Token)
+@limiter.limit("5/minute")
 async def login_for_access_token(
+    request: Request,
     username: str = Form(...), # Este campo recibirá el email
     password: str = Form(...),
     db: Session = Depends(get_db)
@@ -1390,7 +1399,8 @@ async def get_stats_summary(db: Session = Depends(get_db), current: models.Opera
     }
 
 @app.post("/api/leads/{user_id}/analyze")
-async def trigger_ai_analysis(user_id: str, db: Session = Depends(get_db), current: models.Operator = Depends(get_current_operator)):
+@limiter.limit("10/day")
+async def trigger_ai_analysis(request: Request, user_id: str, db: Session = Depends(get_db), current: models.Operator = Depends(get_current_operator)):
     cid = current.company_id
     u_id = clean_user_id(user_id)
     res = await analyze_lead_with_ai(u_id, cid, db)
