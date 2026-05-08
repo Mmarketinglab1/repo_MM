@@ -715,17 +715,26 @@ async def get_leads(company_id: Optional[str] = None, db: Session = Depends(get_
         if not cid or cid in ["undefined", "null", "", "None"]:
             cid = "00000000-0000-0000-0000-000000000000"
             
-    users = db.query(models.User).filter(models.User.company_id == cid).order_by(models.User.created_at.desc()).all()
+    users = db.query(models.User).filter(models.User.company_id == cid).all()
     
     # Lógica de ventana 24hs sincronizada con get_conversations
     user_ids = [u.id for u in users]
     last_msg_map = {}
+    last_activity_map = {}
     if user_ids:
         from sqlalchemy import func
-        stmt = db.query(models.Message.user_id, func.max(models.Message.timestamp_ms).label('max_ts'))\
+        stmt_user = db.query(models.Message.user_id, func.max(models.Message.timestamp_ms).label('max_ts'))\
                  .filter(models.Message.user_id.in_(user_ids), models.Message.sender == 'user')\
                  .group_by(models.Message.user_id).all()
-        last_msg_map = {row.user_id: row.max_ts for row in stmt}
+        last_msg_map = {row.user_id: row.max_ts for row in stmt_user}
+        
+        stmt_all = db.query(models.Message.user_id, func.max(models.Message.timestamp_ms).label('max_ts'))\
+                 .filter(models.Message.user_id.in_(user_ids))\
+                 .group_by(models.Message.user_id).all()
+        last_activity_map = {row.user_id: row.max_ts for row in stmt_all}
+        
+    # Ordenar leads por el chat más reciente
+    users.sort(key=lambda u: last_activity_map.get(u.id, int(u.created_at.timestamp() * 1000) if hasattr(u, 'created_at') and u.created_at else 0), reverse=True)
     
     current_time_ms = int(time.time() * 1000)
     window_24h_ms = 24 * 60 * 60 * 1000
@@ -1141,16 +1150,25 @@ def get_conversations(
         except Exception:
             pass
 
-    users = query.order_by(models.User.last_activity.desc()).all()
+    users = query.all()
     
-    # Obtener el último mensaje del usuario para la ventana de 24hs
+    # Obtener el último mensaje del usuario para la ventana de 24hs y para el orden
     user_ids = [u.id for u in users]
     last_msg_map = {}
+    last_activity_map = {}
     if user_ids:
-        stmt = db.query(models.Message.user_id, func.max(models.Message.timestamp_ms).label('max_ts'))\
+        stmt_user = db.query(models.Message.user_id, func.max(models.Message.timestamp_ms).label('max_ts'))\
                  .filter(models.Message.user_id.in_(user_ids), models.Message.sender == 'user')\
                  .group_by(models.Message.user_id).all()
-        last_msg_map = {row.user_id: row.max_ts for row in stmt}
+        last_msg_map = {row.user_id: row.max_ts for row in stmt_user}
+        
+        stmt_all = db.query(models.Message.user_id, func.max(models.Message.timestamp_ms).label('max_ts'))\
+                 .filter(models.Message.user_id.in_(user_ids))\
+                 .group_by(models.Message.user_id).all()
+        last_activity_map = {row.user_id: row.max_ts for row in stmt_all}
+
+    # Ordenar conversaciones por el chat más reciente
+    users.sort(key=lambda u: last_activity_map.get(u.id, int(u.created_at.timestamp() * 1000) if hasattr(u, 'created_at') and u.created_at else 0), reverse=True)
     
     current_time_ms = int(time.time() * 1000)
     window_24h_ms = 24 * 60 * 60 * 1000
