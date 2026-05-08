@@ -23,8 +23,16 @@ else:
 engine = create_engine(
     DATABASE_URL, 
     pool_pre_ping=True,
-    pool_recycle=3600,
-    connect_args={"connect_timeout": 10}
+    pool_recycle=300, # Bajar de 3600 a 300 para PgBouncer/Supabase
+    pool_size=5,
+    max_overflow=15,
+    connect_args={
+        "connect_timeout": 10,
+        "keepalives": 1,
+        "keepalives_idle": 30,
+        "keepalives_interval": 10,
+        "keepalives_count": 5
+    }
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
