@@ -1725,18 +1725,24 @@ async def upload_remarketing_media(
     return {"url": public_url}
 
 @app.websocket("/ws/{username}")
-async def websocket_endpoint(websocket: WebSocket, username: str, db: Session = Depends(get_db)):
-    operator = db.query(models.Operator).filter(models.Operator.username == username).first()
-    if not operator: 
-        await websocket.close()
-        return
-    await manager.connect(websocket, operator.company_id)
+async def websocket_endpoint(websocket: WebSocket, username: str):
+    db = SessionLocal()
+    try:
+        operator = db.query(models.Operator).filter(models.Operator.username == username).first()
+        if not operator: 
+            await websocket.close()
+            return
+        company_id = operator.company_id
+    finally:
+        db.close()
+
+    await manager.connect(websocket, company_id)
     try:
         while True:
             data = await websocket.receive_text()
             # No actions from operator yet needed
     except WebSocketDisconnect:
-        manager.disconnect(websocket, operator.company_id)
+        manager.disconnect(websocket, company_id)
 
 # --- FRONTEND (HTML/JS) ---
 
