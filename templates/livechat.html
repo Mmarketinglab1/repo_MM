@@ -242,9 +242,11 @@
         <main id="view-conversations" class="flex-1 flex flex-col md:flex-row overflow-hidden p-0 md:p-6 gap-0 md:gap-6">
             <!-- Lista Leads Izquierda -->
             <div id="chat-list-container" class="w-full md:w-96 bg-white md:rounded-3xl border-0 md:border border-white md:crm-shadow flex flex-col overflow-hidden h-full shrink-0">
-                <div class="p-6 border-b flex justify-between items-center">
-                    <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest">Chat Activos</h3>
-                    <span id="stat-total-users" class="bg-blue-100 text-blue-600 text-[10px] font-black px-2 py-1 rounded-full">0</span>
+                <div class="p-6 border-b flex justify-between items-center bg-slate-50/50">
+                    <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest cursor-pointer flex items-center gap-2 group" onclick="toggleConvDateSort()">
+                        Chat Activos <i id="conv-date-sort-icon" class="fas fa-sort-amount-down text-slate-300 group-hover:text-blue-600 transition-colors"></i>
+                    </h3>
+                    <span id="stat-total-users" class="bg-blue-100 text-blue-600 text-[10px] font-black px-2 py-1 rounded-full shadow-sm border border-blue-200">0</span>
                 </div>
                 <div id="user-list" class="overflow-y-auto flex-1"></div>
             </div>
@@ -1262,11 +1264,32 @@
         }
 
         // --- CONVERSACIONES ---
+        let convDateSortOrder = 'desc';
+        let currentConversationsData = [];
+        
+        function toggleConvDateSort() {
+            convDateSortOrder = (convDateSortOrder === 'desc') ? 'asc' : 'desc';
+            const icon = document.getElementById('conv-date-sort-icon');
+            if (icon) {
+                icon.className = (convDateSortOrder === 'desc') ? 'fas fa-sort-amount-down text-slate-300 group-hover:text-blue-600 transition-colors' : 'fas fa-sort-amount-up text-blue-600 transition-colors';
+            }
+            renderConversationsList();
+        }
+
         async function loadConversations() {
             const res = await superFetch('/api/conversations');
-            const data = await res.json();
-            document.getElementById('stat-total-users').innerText = data.length;
-            document.getElementById('user-list').innerHTML = data.map(c => `
+            currentConversationsData = await res.json();
+            renderConversationsList();
+        }
+        
+        function renderConversationsList() {
+            let dataToRender = [...currentConversationsData];
+            if (convDateSortOrder === 'asc') {
+                dataToRender.reverse(); // El backend ya los devuelve en orden desc (más reciente primero)
+            }
+            
+            document.getElementById('stat-total-users').innerText = dataToRender.length;
+            document.getElementById('user-list').innerHTML = dataToRender.map(c => `
                 <div onclick="selectChat('${c.id}', '${c.user}', '${c.phone}', '${c.tags || ''}', ${c.is_bot_active}, ${c.is_24h_window_closed})" class="px-6 py-4 border-b border-slate-100 cursor-pointer hover:bg-slate-50 transition-all flex items-center gap-3 ${activeUserId === c.id ? 'bg-blue-50/50 border-r-2 border-r-blue-600' : ''}">
                     <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-xs border border-slate-200 shrink-0 overflow-hidden">
                         <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(c.user)}&background=F1F5F9&color=64748B&size=128" class="w-full h-full">
@@ -1305,6 +1328,9 @@
             document.getElementById('chat-input-area').classList.add('flex');
             document.getElementById('chat-title').innerText = name;
             document.getElementById('chat-phone').innerText = phone;
+            
+            // Mostrar indicador de carga visualmente
+            document.getElementById('chat-window').innerHTML = '<div class="flex h-full items-center justify-center text-slate-300 text-xs"><i class="fas fa-circle-notch fa-spin mr-2"></i> Cargando mensajes...</div>';
             
             renderTagsInChat();
             renderBotStatus();
@@ -1409,9 +1435,21 @@
 
         async function loadMessages() {
             if (!activeUserId) return;
+            const currentRequestedUser = activeUserId; // Guardamos el ID actual para prevenir race conditions
+            
             const res = await superFetch('/api/messages/' + activeUserId);
             const messages = await res.json();
+            
+            // Si el operador cambió de chat mientras cargaban los mensajes, descartamos el renderizado
+            if (activeUserId !== currentRequestedUser) return;
+            
             const window = document.getElementById('chat-window');
+            
+            // Si no hay mensajes, limpiar ventana
+            if (messages.length === 0) {
+                window.innerHTML = '<div class="flex h-full items-center justify-center text-slate-300 text-xs italic">No hay mensajes en esta conversación.</div>';
+                return;
+            }
             
             window.innerHTML = messages.map(m => {
                 const isSelf = m.from === 'bot' || m.from === 'human';
