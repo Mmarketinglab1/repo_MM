@@ -2110,6 +2110,9 @@ btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
                         const ext = cleanUrl.split('.').pop().toLowerCase();
                         let isMatch = false;
                         
+                        // Permitir URLs scontent temporalmente si no tienen extensión clásica pero son de meta
+                        if (cleanUrl.includes('scontent') || cleanUrl.includes('fbcdn')) isMatch = true;
+                        
                         if (mediaType === 'image' && ['jpg', 'jpeg', 'png', 'webp'].includes(ext)) isMatch = true;
                         if (mediaType === 'video' && ['mp4', 'mov'].includes(ext)) isMatch = true;
                         if (mediaType === 'document' && ['pdf', 'doc', 'docx', 'xls', 'xlsx'].includes(ext)) isMatch = true;
@@ -2132,6 +2135,14 @@ btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
                                 [mediaType]: { link: finalUrl }
                             }]
                         });
+                    } else {
+                        // FALLA: Falta URL para el header multimedia
+                        showRMStatus(`⚠️ La plantilla seleccionada requiere una URL de tipo ${mediaType.toUpperCase()}. Por favor, completa el campo 'URL Multimedia'.`, 'error');
+                        btn.innerHTML = originalContent;
+                        btn.classList.replace('bg-orange-500', 'bg-purple-600');
+                        btn.disabled = false;
+                        campaignConfirmMode = false;
+                        return;
                     }
                 }
 
