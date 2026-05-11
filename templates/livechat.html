@@ -839,6 +839,46 @@
         </div>
     </div>
     
+    <!-- Modal WhatsApp Config Super Admin -->
+    <div id="modal-super-whatsapp" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden border border-slate-100 flex flex-col max-h-[90vh]">
+            <div class="bg-emerald-50 p-6 border-b border-emerald-100 flex justify-between items-center shrink-0">
+                <div>
+                    <h3 class="text-emerald-900 font-black text-lg">Configuración WhatsApp</h3>
+                    <p class="text-emerald-600 text-xs font-bold mt-1" id="super-wa-company-name">Empresa</p>
+                </div>
+                <button onclick="closeWhatsAppConfigModal()" class="w-8 h-8 rounded-full bg-white text-emerald-400 hover:text-emerald-600 hover:bg-emerald-100 transition-all flex items-center justify-center shadow-sm">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-4 overflow-y-auto">
+                <input type="hidden" id="super-wa-company-id">
+                
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5 ml-1">WABA ID <span class="text-[9px] text-slate-400 normal-case">(WhatsApp Business Account ID)</span></label>
+                    <input type="text" id="super-wa-waba-id" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl px-4 py-3 outline-none focus:border-emerald-500 focus:bg-white transition-all shadow-sm" placeholder="Ej: 2009003829997798">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Phone ID <span class="text-[9px] text-slate-400 normal-case">(ID del número de teléfono)</span></label>
+                    <input type="text" id="super-wa-phone-id" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl px-4 py-3 outline-none focus:border-emerald-500 focus:bg-white transition-all shadow-sm" placeholder="Ej: 1082008684993209">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Access Token <span class="text-[9px] text-slate-400 normal-case">(Meta System User Token)</span></label>
+                    <input type="password" id="super-wa-token" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl px-4 py-3 outline-none focus:border-emerald-500 focus:bg-white transition-all shadow-sm" placeholder="EAAL...">
+                </div>
+                <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 flex gap-3 mt-2">
+                    <i class="fas fa-info-circle text-emerald-500 mt-0.5"></i>
+                    <p class="text-[10px] text-emerald-700 leading-relaxed font-medium">Estos datos son necesarios para que funcione el envío de plantillas de Remarketing y la conexión de WhatsApp Cloud API.</p>
+                </div>
+            </div>
+            <div class="p-6 border-t border-slate-100 bg-slate-50 shrink-0">
+                <button id="btn-save-wa-config" onclick="saveWhatsAppConfig()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 rounded-xl transition shadow-lg shadow-emerald-200">
+                    Guardar Configuración
+                </button>
+            </div>
+        </div>
+    </div>
+    
     <!-- Modal Todos los Operadores (Súper Admin) -->
     <div id="modal-super-all-operators" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="w-full max-w-4xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
@@ -2527,13 +2567,18 @@ btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
         }
 
         // --- SUPER ADMIN ---
+        // --- WHATSAPP CONFIG ---
+        let currentSuperCompanies = [];
+        
         async function loadSuperAdminData() {
             const res = await fetch('/api/super/companies', { headers: { 'Authorization': 'Bearer ' + auth_token }});
-            const data = await res.json();
+            currentSuperCompanies = await res.json();
+            const data = currentSuperCompanies;
             
             document.getElementById('super-stat-companies').innerText = data.length;
             document.getElementById('super-stat-leads').innerText = data.reduce((a, b) => a + (b.leads || 0), 0);
             document.getElementById('super-stat-msgs').innerText = data.reduce((a, b) => a + (b.messages || 0), 0);
+
             
             let html = "";
             data.forEach(c => {
@@ -2589,6 +2634,10 @@ btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
                                     class="bg-slate-600 text-white p-2.5 rounded-xl hover:bg-slate-700 transition" title="Editar Nombre">
                                 <i class="fas fa-edit text-xs"></i>
                             </button>
+                            <button onclick="openWhatsAppConfigModal('${c.id}')" 
+                                    class="bg-emerald-500 text-white p-2.5 rounded-xl hover:bg-emerald-600 transition" title="Configurar WhatsApp">
+                                <i class="fab fa-whatsapp text-xs"></i>
+                            </button>
                             <button onclick="toggleCompanyStatus('${c.id}', ${c.is_active})" 
                                     class="${statusBtnClass} text-white p-2.5 rounded-xl transition" title="${statusBtnText}">
                                 <i class="fas ${c.is_active ? 'fa-ban' : 'fa-check'} text-xs"></i>
@@ -2626,6 +2675,7 @@ btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
                                 <button onclick="enterCompany('${c.id}', '${safeName}')" class="flex-1 bg-blue-600 text-white text-[10px] font-black uppercase py-3 rounded-xl shadow-lg shadow-blue-100">Entrar</button>
                                 <button onclick="openSuperOperatorsModal('${c.id}', '${safeName}')" class="bg-indigo-100 text-indigo-600 w-12 h-12 rounded-xl flex items-center justify-center"><i class="fas fa-users text-sm"></i></button>
                                 <button onclick="editCompanyName('${c.id}', '${safeName}')" class="bg-slate-200 text-slate-600 w-12 h-12 rounded-xl flex items-center justify-center"><i class="fas fa-edit text-sm"></i></button>
+                                <button onclick="openWhatsAppConfigModal('${c.id}')" class="bg-emerald-100 text-emerald-600 w-12 h-12 rounded-xl flex items-center justify-center"><i class="fab fa-whatsapp text-sm"></i></button>
                                 <button onclick="toggleCompanyStatus('${c.id}', ${c.is_active})" class="${statusBtnClass} text-white w-12 h-12 rounded-xl flex items-center justify-center"><i class="fas ${c.is_active ? 'fa-ban' : 'fa-check'} text-sm"></i></button>
                             </div>
                         </div>
@@ -3097,6 +3147,64 @@ btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
                 `).join('') || '<tr><td colspan="4" class="py-10 text-center text-slate-400 text-xs">No hay usuarios registrados.</td></tr>';
             } catch(e) {
                 list.innerHTML = '<tr><td colspan="4" class="py-10 text-center text-red-500 text-xs">Error al cargar usuarios.</td></tr>';
+            }
+        }
+
+        function openWhatsAppConfigModal(companyId) {
+            const company = currentSuperCompanies.find(c => c.id === companyId);
+            if (!company) return;
+            
+            document.getElementById('super-wa-company-id').value = companyId;
+            document.getElementById('super-wa-company-name').innerText = company.name;
+            document.getElementById('super-wa-token').value = company.whatsapp_token || '';
+            document.getElementById('super-wa-phone-id').value = company.whatsapp_phone_id || '';
+            document.getElementById('super-wa-waba-id').value = company.whatsapp_waba_id || '';
+            
+            document.getElementById('modal-super-whatsapp').classList.remove('hidden');
+        }
+
+        function closeWhatsAppConfigModal() {
+            document.getElementById('modal-super-whatsapp').classList.add('hidden');
+        }
+
+        async function saveWhatsAppConfig() {
+            const companyId = document.getElementById('super-wa-company-id').value;
+            const token = document.getElementById('super-wa-token').value;
+            const phoneId = document.getElementById('super-wa-phone-id').value;
+            const wabaId = document.getElementById('super-wa-waba-id').value;
+            
+            const btn = document.getElementById('btn-save-wa-config');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Guardando...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`/api/super/companies/${companyId}`, {
+                    method: 'PATCH',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + auth_token 
+                    },
+                    body: JSON.stringify({ 
+                        whatsapp_token: token || null,
+                        whatsapp_phone_id: phoneId || null,
+                        whatsapp_waba_id: wabaId || null
+                    })
+                });
+
+                if (res.ok) {
+                    showToast("✅ Configuración de WhatsApp guardada");
+                    closeWhatsAppConfigModal();
+                    loadSuperAdminData();
+                } else {
+                    alert("Error al guardar la configuración de WhatsApp");
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Error de red al guardar");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
             }
         }
 

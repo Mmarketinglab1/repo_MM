@@ -805,7 +805,10 @@ async def super_list_companies(db: Session = Depends(get_db), current: models.Op
             "is_active": c.is_active,
             "logo_url": c.logo_url,
             "leads": leads_count,
-            "messages": msg_count
+            "messages": msg_count,
+            "whatsapp_token": c.whatsapp_token,
+            "whatsapp_phone_id": c.whatsapp_phone_id,
+            "whatsapp_waba_id": c.whatsapp_waba_id
         })
     return result
 
@@ -859,6 +862,8 @@ class CompanyUpdateSchema(BaseModel):
     name: Optional[str] = None
     is_active: Optional[bool] = None
     whatsapp_waba_id: Optional[str] = None
+    whatsapp_token: Optional[str] = None
+    whatsapp_phone_id: Optional[str] = None
 
 @app.patch("/api/companies/{company_id}")
 async def update_company(company_id: str, data: CompanyUpdateSchema, db: Session = Depends(get_db), current: models.Operator = Depends(get_current_operator)):
@@ -871,6 +876,8 @@ async def update_company(company_id: str, data: CompanyUpdateSchema, db: Session
     
     if data.name is not None: company.name = data.name
     if data.whatsapp_waba_id is not None: company.whatsapp_waba_id = data.whatsapp_waba_id
+    if data.whatsapp_token is not None: company.whatsapp_token = data.whatsapp_token
+    if data.whatsapp_phone_id is not None: company.whatsapp_phone_id = data.whatsapp_phone_id
     
     # is_active solo lo cambia el SuperAdmin
     if data.is_active is not None and current.role == "super_admin":
@@ -886,6 +893,9 @@ async def super_update_company(company_id: str, data: CompanyUpdateSchema, db: S
     
     if data.name is not None: company.name = data.name
     if data.is_active is not None: company.is_active = data.is_active
+    if data.whatsapp_waba_id is not None: company.whatsapp_waba_id = data.whatsapp_waba_id
+    if data.whatsapp_token is not None: company.whatsapp_token = data.whatsapp_token
+    if data.whatsapp_phone_id is not None: company.whatsapp_phone_id = data.whatsapp_phone_id
     
     db.commit()
     return {"status": "ok"}
