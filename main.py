@@ -1395,14 +1395,30 @@ async def get_stats_summary(db: Session = Depends(get_db), current: models.Opera
         .filter(models.User.company_id == cid)\
         .group_by(models.User.crm_status).all()
     
-    # 3. Rendimiento por Operador (Simplificado sin CASE para evitar fallos de startup)
+    # 3. Rendimiento por Operador
     op_perf_list = []
     ops = db.query(models.Operator).filter(models.Operator.company_id == cid).all()
     for op in ops:
         assigned = db.query(models.User).filter(models.User.assigned_to == op.id).count()
-        won = db.query(models.User).filter(models.User.assigned_to == op.id, models.User.crm_status == 'Vendido').count()
         if assigned > 0:
-            op_perf_list.append({"name": op.full_name, "assigned": assigned, "won": won})
+            uncontacted = db.query(models.User).filter(
+                models.User.assigned_to == op.id, 
+                models.User.crm_status.in_(['No Contactado', 'Esperando Operador', 'Re Marketing 0'])
+            ).count()
+            won = db.query(models.User).filter(
+                models.User.assigned_to == op.id, 
+                models.User.crm_status == 'Vendido'
+            ).count()
+            # In progress es el resto
+            in_progress = assigned - uncontacted - won
+            
+            op_perf_list.append({
+                "name": op.full_name, 
+                "assigned": assigned, 
+                "uncontacted": uncontacted,
+                "in_progress": in_progress,
+                "won": won
+            })
 
     # 4. Promedio de Temperatura y Sentimiento
     sentiment_counts = db.query(models.LeadAnalysis.sentiment_score, func.count(models.LeadAnalysis.id))\

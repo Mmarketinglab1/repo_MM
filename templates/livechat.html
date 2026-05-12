@@ -554,10 +554,26 @@
                     </div>
 
                     <!-- Operator Performance -->
-                    <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+                    <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm md:col-span-2">
                         <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest mb-6">Rendimiento por Operador</h3>
-                        <div class="h-[300px]">
-                            <canvas id="chart-ops-perf"></canvas>
+                        <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                            <div class="xl:col-span-2 h-[350px]">
+                                <canvas id="chart-ops-perf"></canvas>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left">
+                                    <thead>
+                                        <tr class="border-b border-slate-100">
+                                            <th class="pb-3 text-[10px] font-black text-slate-400 uppercase">Operador</th>
+                                            <th class="pb-3 text-[10px] font-black text-slate-400 uppercase text-center">Conv.</th>
+                                            <th class="pb-3 text-[10px] font-black text-slate-400 uppercase text-right">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="table-ops-perf" class="divide-y divide-slate-50">
+                                        <!-- Se llena vía JS -->
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -2961,11 +2977,69 @@ btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
             const res = await superFetch('/api/stats/summary');
             const data = await res.json();
             
-            if (document.getElementById('stat-avg-temp')) document.getElementById('stat-avg-temp').innerText = `${data.average_temperature}%`;
+            if (document.getElementById('stat-avg-temp')) document.getElementById('stat-avg-temp').innerText = `${data.average_temperature || 0}%`;
             if (document.getElementById('stat-total-leads')) document.getElementById('stat-total-leads').innerText = data.kpis.total_leads;
             
             renderChart('chart-status', 'pie', data.status_distribution, ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#6366f1']);
             renderChart('chart-sentiment', 'doughnut', data.sentiment_distribution, ['#10b981', '#94a3b8', '#ef4444']);
+            
+            // Renderizar Gráfico de Operadores (Stacked Bar)
+            renderOperatorChart(data.operator_performance);
+            
+            // Llenar Tabla de Operadores
+            const tableBody = document.getElementById('table-ops-perf');
+            if (tableBody) {
+                tableBody.innerHTML = data.operator_performance.map(op => {
+                    const rate = ((op.won / op.assigned) * 100).toFixed(1);
+                    return `
+                        <tr>
+                            <td class="py-3">
+                                <p class="text-xs font-bold text-slate-700">${op.name}</p>
+                                <p class="text-[9px] text-slate-400 font-medium">${op.won} ventas</p>
+                            </td>
+                            <td class="py-3 text-center">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-black ${parseFloat(rate) > 10 ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-500'}">
+                                    ${rate}%
+                                </span>
+                            </td>
+                            <td class="py-3 text-right text-xs font-black text-slate-600">${op.assigned}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+
+        function renderOperatorChart(perfData) {
+            if (charts['chart-ops-perf']) charts['chart-ops-perf'].destroy();
+            
+            const labels = perfData.map(d => d.name);
+            const uncontacted = perfData.map(d => d.uncontacted);
+            const inProgress = perfData.map(d => d.in_progress);
+            const won = perfData.map(d => d.won);
+
+            const ctx = document.getElementById('chart-ops-perf').getContext('2d');
+            charts['chart-ops-perf'] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Vendido', data: won, backgroundColor: '#10b981' },
+                        { label: 'En Proceso', data: inProgress, backgroundColor: '#3b82f6' },
+                        { label: 'Sin Contactar', data: uncontacted, backgroundColor: '#f59e0b' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { stacked: true },
+                        y: { stacked: true, beginAtZero: true }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10, weight: 'bold' } } }
+                    }
+                }
+            });
         }
 
         function renderChart(canvasId, type, dataMap, colors) {
