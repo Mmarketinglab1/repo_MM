@@ -429,37 +429,7 @@
             </div>
         </main>
 
-        <!-- VISTA ESTADISTICAS (NUEVO) -->
-        <main id="view-stats" class="flex-1 p-4 md:p-8 view-hidden overflow-y-auto bg-slate-50">
-            <div class="max-w-6xl mx-auto">
-                <div class="mb-10">
-                    <h1 class="text-3xl font-black text-slate-800 tracking-tight">Estadísticas e IA</h1>
-                    <p class="text-slate-400 font-medium">Análisis inteligente del comportamiento de ventas</p>
-                </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Temperatura Media</p>
-                        <h3 id="stat-avg-temp" class="text-3xl font-black text-orange-500">0%</h3>
-                    </div>
-                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Leads Totales</p>
-                        <h3 id="stat-total-leads" class="text-3xl font-black text-blue-600">0</h3>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
-                        <h4 class="text-sm font-black text-slate-800 uppercase tracking-widest mb-6">Distribución por Estado</h4>
-                        <canvas id="chart-status" class="max-h-64"></canvas>
-                    </div>
-                    <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
-                        <h4 class="text-sm font-black text-slate-800 uppercase tracking-widest mb-6">Sentimiento General (IA)</h4>
-                        <canvas id="chart-sentiment" class="max-h-64"></canvas>
-                    </div>
-                </div>
-            </div>
-        </main>
 
         <!-- VISTA SUPER ADMIN (Gestión SaaS) -->
         <main id="view-superadmin" class="flex-1 p-8 view-hidden overflow-y-auto bg-slate-50">
@@ -2977,11 +2947,15 @@ btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
             const res = await superFetch('/api/stats/summary');
             const data = await res.json();
             
-            if (document.getElementById('stat-avg-temp')) document.getElementById('stat-avg-temp').innerText = `${data.average_temperature || 0}%`;
+            // KPIs
             if (document.getElementById('stat-total-leads')) document.getElementById('stat-total-leads').innerText = data.kpis.total_leads;
+            if (document.getElementById('stat-leads-today')) document.getElementById('stat-leads-today').innerText = data.kpis.leads_today;
+            if (document.getElementById('stat-conversion-rate')) document.getElementById('stat-conversion-rate').innerText = `${data.kpis.conversion_rate}%`;
+            if (document.getElementById('stat-total-msgs')) document.getElementById('stat-total-msgs').innerText = data.kpis.total_messages;
             
-            renderChart('chart-status', 'pie', data.status_distribution, ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#6366f1']);
-            renderChart('chart-sentiment', 'doughnut', data.sentiment_distribution, ['#10b981', '#94a3b8', '#ef4444']);
+            // Gráficos
+            renderChart('chart-leads-time', 'line', data.leads_over_time, ['#6366f1']);
+            renderChart('chart-status-dist', 'pie', data.status_distribution, ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#6366f1']);
             
             // Renderizar Gráfico de Operadores (Stacked Bar)
             renderOperatorChart(data.operator_performance);
