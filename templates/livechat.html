@@ -480,9 +480,34 @@
         <!-- VISTA ESTADISTICAS (NUEVO) -->
         <main id="view-stats" class="flex-1 p-4 md:p-8 view-hidden overflow-y-auto bg-slate-50">
             <div class="max-w-6xl mx-auto">
-                <div class="mb-10">
-                    <h1 class="text-3xl font-black text-slate-800 tracking-tight">Panel de Estadísticas</h1>
-                    <p class="text-slate-400 font-medium">Análisis de rendimiento y conversión de leads</p>
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
+                    <div>
+                        <h1 class="text-3xl font-black text-slate-800 tracking-tight">Panel de Estadísticas</h1>
+                        <p class="text-slate-400 font-medium">Análisis de rendimiento y conversión de leads</p>
+                    </div>
+                    
+                    <!-- Filtros de Estadísticas -->
+                    <div class="flex flex-wrap items-center gap-3 bg-white p-4 rounded-3xl border border-slate-100 shadow-sm">
+                        <div class="flex flex-col">
+                            <label class="text-[9px] font-black uppercase text-slate-400 ml-2 mb-1">Desde</label>
+                            <input type="date" id="stats-filter-from" onchange="loadStatsDashboard()" class="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-xs font-bold text-slate-600 focus:ring-2 focus:ring-blue-500/20 outline-none">
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-[9px] font-black uppercase text-slate-400 ml-2 mb-1">Hasta</label>
+                            <input type="date" id="stats-filter-to" onchange="loadStatsDashboard()" class="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-xs font-bold text-slate-600 focus:ring-2 focus:ring-blue-500/20 outline-none">
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-[9px] font-black uppercase text-slate-400 ml-2 mb-1">Operador</label>
+                            <select id="stats-filter-operator" onchange="loadStatsDashboard()" class="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-xs font-bold text-slate-600 focus:ring-2 focus:ring-blue-500/20 outline-none min-w-[140px]">
+                                <option value="all">TODOS</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col justify-end pt-4">
+                            <button onclick="clearStatsFilters()" class="w-8 h-8 rounded-lg bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 transition flex items-center justify-center border border-slate-100" title="Limpiar Filtros">
+                                <i class="fas fa-times text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- KPIs Cards -->
@@ -2944,7 +2969,28 @@ btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
         // --- DASHBOARD STATS ---
         let charts = {};
         async function loadStatsDashboard() {
-            const res = await superFetch('/api/stats/summary');
+            // Poblar selector de operadores si está vacío
+            const opSelect = document.getElementById('stats-filter-operator');
+            if (opSelect && opSelect.options.length <= 1) {
+                // Usar la lista global de operadores que ya cargamos
+                companyOperators.forEach(op => {
+                    const opt = document.createElement('option');
+                    opt.value = op.id;
+                    opt.text = op.full_name;
+                    opSelect.add(opt);
+                });
+            }
+
+            const from = document.getElementById('stats-filter-from')?.value;
+            const to = document.getElementById('stats-filter-to')?.value;
+            const opId = document.getElementById('stats-filter-operator')?.value;
+            
+            let url = '/api/stats/summary?';
+            if (from) url += `date_from=${from}&`;
+            if (to) url += `date_to=${to}&`;
+            if (opId && opId !== 'all') url += `operator_id=${opId}&`;
+
+            const res = await superFetch(url);
             const data = await res.json();
             
             // KPIs
@@ -2964,7 +3010,7 @@ btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
             const tableBody = document.getElementById('table-ops-perf');
             if (tableBody) {
                 tableBody.innerHTML = data.operator_performance.map(op => {
-                    const rate = ((op.won / op.assigned) * 100).toFixed(1);
+                    const rate = op.assigned > 0 ? ((op.won / op.assigned) * 100).toFixed(1) : "0.0";
                     return `
                         <tr>
                             <td class="py-3">
@@ -2981,6 +3027,13 @@ btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
                     `;
                 }).join('');
             }
+        }
+
+        function clearStatsFilters() {
+            if (document.getElementById('stats-filter-from')) document.getElementById('stats-filter-from').value = '';
+            if (document.getElementById('stats-filter-to')) document.getElementById('stats-filter-to').value = '';
+            if (document.getElementById('stats-filter-operator')) document.getElementById('stats-filter-operator').value = 'all';
+            loadStatsDashboard();
         }
 
         function renderOperatorChart(perfData) {
