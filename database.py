@@ -19,11 +19,14 @@ if not DB_PASS:
     print("WARNING: DB_PASS is missing in environment variables. Database connection will fail.")
     DATABASE_URL = "postgresql://localhost/mock"
 else:
-    DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}?sslmode=require"
 
 engine = create_engine(
     DATABASE_URL, 
-    poolclass=NullPool,
+    pool_pre_ping=True,
+    pool_recycle=300,
+    pool_size=5,
+    max_overflow=15,
     connect_args={
         "connect_timeout": 10,
         "keepalives": 1,
