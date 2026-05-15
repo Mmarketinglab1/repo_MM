@@ -1148,7 +1148,12 @@
                 return;
             }
             try {
-                const res = await fetch('/api/me', { headers: { 'Authorization': 'Bearer ' + auth_token }});
+                // Usamos la lógica de superFetch para que el /api/me sepa si estamos impersonando
+                const impId = localStorage.getItem('impersonate_company_id');
+                const headers = { 'Authorization': 'Bearer ' + auth_token };
+                if (impId) { headers['X-Tenant-ID'] = impId; headers['X-Company-ID'] = impId; }
+                
+                const res = await fetch('/api/me', { headers });
                 if (res.ok) {
                     currentUser = await res.json();
                     console.log("[AUTH] Logged in as:", currentUser.username, currentUser.role);
@@ -2504,7 +2509,12 @@ btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
         function connectWebSocket() {
             if (!currentUser || ws) return;
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            ws = new WebSocket(`${protocol}//${window.location.host}/ws/${currentUser.username}`);
+            
+            // Prioridad para la sala: 1. ID de impersonación, 2. ID real del usuario
+            const finalRoomId = localStorage.getItem('impersonate_company_id') || currentUser.company_id;
+            
+            console.log("[WS] Connecting with Room ID:", finalRoomId);
+            ws = new WebSocket(`${protocol}//${window.location.host}/ws/${currentUser.username}?company_id=${finalRoomId}`);
             
             ws.onmessage = function(event) {
                 try {

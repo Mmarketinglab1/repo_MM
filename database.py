@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import NullPool
 import os
 
 from dotenv import load_dotenv
@@ -22,10 +23,7 @@ else:
 
 engine = create_engine(
     DATABASE_URL, 
-    pool_pre_ping=True,
-    pool_recycle=300, # Bajar de 3600 a 300 para PgBouncer/Supabase
-    pool_size=5,
-    max_overflow=15,
+    poolclass=NullPool,
     connect_args={
         "connect_timeout": 10,
         "keepalives": 1,

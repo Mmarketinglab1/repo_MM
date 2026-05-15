@@ -533,19 +533,32 @@ class ConnectionManager:
 
     async def connect(self, websocket: WebSocket, company_id: str):
         await websocket.accept()
-        self.active_connections[company_id].append(websocket)
+        cid_str = str(company_id) if company_id else "None"
+        self.active_connections[cid_str].append(websocket)
+        print(f"[WS] New connection to room: {cid_str}. Total in room: {len(self.active_connections[cid_str])}", flush=True)
 
     def disconnect(self, websocket: WebSocket, company_id: str):
-        if company_id in self.active_connections and websocket in self.active_connections[company_id]:
-            self.active_connections[company_id].remove(websocket)
+        cid_str = str(company_id) if company_id else "None"
+        if cid_str in self.active_connections and websocket in self.active_connections[cid_str]:
+            self.active_connections[cid_str].remove(websocket)
+            print(f"[WS] Disconnected from room: {cid_str}. Remaining: {len(self.active_connections[cid_str])}", flush=True)
 
     async def broadcast(self, message: dict, company_id: str):
-        if company_id not in self.active_connections: return
-        for connection in list(self.active_connections[company_id]):
+        cid_str = str(company_id) if company_id else "None"
+        print(f"[WS] Broadcasting to room {cid_str}: {message.get('event')}", flush=True)
+        if cid_str not in self.active_connections:
+            print(f"[WS] No active connections in room {cid_str}", flush=True)
+            return
+        
+        count = 0
+        for connection in list(self.active_connections[cid_str]):
             try:
                 await connection.send_json(message)
-            except Exception:
-                self.disconnect(connection, company_id)
+                count += 1
+            except Exception as e:
+                print(f"[WS] Error sending to connection: {e}", flush=True)
+                self.disconnect(connection, cid_str)
+        print(f"[WS] Successfully sent to {count} connections in room {cid_str}", flush=True)
 
 manager = ConnectionManager()
 
@@ -1831,23 +1844,42 @@ async def upload_remarketing_media(
 
 @app.websocket("/ws/{username}")
 async def websocket_endpoint(websocket: WebSocket, username: str):
+    # Obtener company_id de los query params manualmente por seguridad en WS
+    company_id_param = websocket.query_params.get("company_id")
+    
     db = SessionLocal()
     try:
         operator = db.query(models.Operator).filter(models.Operator.username == username).first()
         if not operator: 
+            print(f"[WS] Connection rejected: Operator {username} not found", flush=True)
             await websocket.close()
             return
-        company_id = operator.company_id
+        
+        # Room priority: 1. Query parameter (if super_admin or admin), 2. Operator's DB company_id
+        final_company_id = operator.company_id
+        
+        if (operator.role in ["super_admin", "admin"]) and company_id_param and company_id_param != "null":
+            final_company_id = company_id_param
+            print(f"[WS] Operator {username} ({operator.role}) connecting to room: {final_company_id}", flush=True)
+        else:
+            # Si es super_admin y no hay sala, forzamos la sala de Famiglia (default)
+            if operator.role == "super_admin" and (not final_company_id or final_company_id == "None"):
+                final_company_id = "00000000-0000-0000-0000-000000000000"
+            print(f"[WS] Operator {username} connecting to room: {final_company_id}", flush=True)
+        
     finally:
         db.close()
 
-    await manager.connect(websocket, company_id)
+    await manager.connect(websocket, final_company_id)
     try:
         while True:
-            data = await websocket.receive_text()
-            # No actions from operator yet needed
+            # Mantener conexión viva
+            await websocket.receive_text()
     except WebSocketDisconnect:
-        manager.disconnect(websocket, company_id)
+        manager.disconnect(websocket, final_company_id)
+    except Exception as e:
+        print(f"[WS] Unexpected error: {e}", flush=True)
+        manager.disconnect(websocket, final_company_id)
 
 # --- FRONTEND (HTML/JS) ---
 
