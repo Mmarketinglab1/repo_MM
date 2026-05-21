@@ -411,7 +411,7 @@ class OperatorUpdateSchema(BaseModel):
 
 class MessageSchema(BaseModel):
     user_id: Any
-    text: Any
+    text: Optional[Any] = None
     user_name: Optional[str] = "Usuario WhatsApp"
     phone: Optional[str] = None
     timestamp: Optional[Any] = None
@@ -1009,13 +1009,14 @@ async def receive_user_msg(token: str, msg: MessageSchema, db: Session = Depends
 
         # Inteligencia: si n8n manda un sender lo usamos, sino detectamos por contenido
         final_sender = msg.sender
-        if "asistente virtual" in str(msg.text).lower() or "soy el bot" in str(msg.text).lower():
+        text_content = str(msg.text) if msg.text is not None else ""
+        if text_content and ("asistente virtual" in text_content.lower() or "soy el bot" in text_content.lower()):
             final_sender = "bot"
         elif not final_sender:
             final_sender = "user"
 
         new_msg = models.Message(
-            company_id=company.id, user_id=u_id, sender=final_sender, text=str(msg.text),
+            company_id=company.id, user_id=u_id, sender=final_sender, text=text_content,
             timestamp_ms=int(time.time() * 1000)
         )
         db.add(new_msg)
@@ -1103,8 +1104,9 @@ async def receive_bot_msg(token: str, msg: MessageSchema, db: Session = Depends(
     company = db.query(models.Company).filter(models.Company.webhook_token == token).first()
     if not company: return {"status": "error", "detail": "Token inválido"}
     u_id = clean_user_id(msg.user_id)
+    text_content = msg.text if msg.text is not None else ""
     new_msg = models.Message(
-        company_id=company.id, user_id=u_id, sender="bot", text=msg.text,
+        company_id=company.id, user_id=u_id, sender="bot", text=text_content,
         timestamp_ms=int(msg.timestamp) if (msg.timestamp and str(msg.timestamp).isdigit()) else int(time.time() * 1000)
     )
     db.add(new_msg)
@@ -1115,7 +1117,7 @@ async def receive_bot_msg(token: str, msg: MessageSchema, db: Session = Depends(
         db_user.last_activity = func.now()
         
     db.commit()
-    await manager.broadcast({"event": "new_message", "user_id": u_id, "text": msg.text, "sender": "bot"}, company.id)
+    await manager.broadcast({"event": "new_message", "user_id": u_id, "text": text_content, "sender": "bot"}, company.id)
     return {"status": "ok"}
 
 # --- CONVERSACIONES & CRM ---
