@@ -104,7 +104,21 @@ async def startup_event():
             conn.execute(text("ALTER TABLE companies ADD COLUMN IF NOT EXISTS whatsapp_phone_id VARCHAR;"))
             conn.execute(text("ALTER TABLE companies ADD COLUMN IF NOT EXISTS whatsapp_waba_id VARCHAR;"))
             conn.commit()
-            print("Esquema verificado/actualizado.")
+            
+            # Creación de índices para optimizar rendimiento de consultas y evitar 504 Gateway Timeouts
+            print("Creando/verificando índices de base de datos...", flush=True)
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_users_company_id ON users(company_id);"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_users_assigned_to ON users(assigned_to);"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_users_created_at ON users(created_at);"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_operators_company_id ON operators(company_id);"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_messages_company_id ON messages(company_id);"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_messages_user_id ON messages(user_id);"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_messages_timestamp_ms ON messages(timestamp_ms);"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_messages_user_sender_ts ON messages(user_id, sender, timestamp_ms DESC);"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_lead_analysis_user_id ON lead_analysis(user_id);"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_lead_analysis_company_id ON lead_analysis(company_id);"))
+            conn.commit()
+            print("Esquema e índices verificados/actualizados.")
             
             # MIGRACION AUTOMATICA: Si existen variables de entorno, moverlas a la DB para la empresa principal
             wa_t = os.environ.get("WHATSAPP_TOKEN")

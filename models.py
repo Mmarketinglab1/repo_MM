@@ -24,7 +24,7 @@ class Company(Base):
 class User(Base):
     __tablename__ = "users"
     id = Column(String, primary_key=True) # ID de contacto/telefono/UUID
-    company_id = Column(String, ForeignKey("companies.id"))
+    company_id = Column(String, ForeignKey("companies.id"), index=True)
     full_name = Column(String)
     phone = Column(String)
     tags = Column(String, default="") # Etiquetas de CRM
@@ -32,15 +32,15 @@ class User(Base):
     email = Column(String) # Nuevo
     address = Column(String) # Nuevo
     observations = Column(Text) # Nuevo
-    assigned_to = Column(BigInteger, ForeignKey("operators.id"), nullable=True) # Operador asignado
+    assigned_to = Column(BigInteger, ForeignKey("operators.id"), nullable=True, index=True) # Operador asignado
     last_activity = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
     is_bot_active = Column(Boolean, default=True) # Control de bot IA
-    created_at = Column(TIMESTAMP, server_default=func.now())
+    created_at = Column(TIMESTAMP, server_default=func.now(), index=True)
 
 class Operator(Base):
     __tablename__ = "operators"
     id = Column(BigInteger, primary_key=True, index=True, autoincrement=True)
-    company_id = Column(String, ForeignKey("companies.id"))
+    company_id = Column(String, ForeignKey("companies.id"), index=True)
     username = Column(String, index=True)
     hashed_password = Column(String)
     full_name = Column(String)
@@ -54,17 +54,17 @@ class Operator(Base):
 class Message(Base):
     __tablename__ = "messages"
     id = Column(BigInteger, primary_key=True, index=True, autoincrement=True)
-    company_id = Column(String, ForeignKey("companies.id"))
-    user_id = Column(String, ForeignKey("users.id"))
+    company_id = Column(String, ForeignKey("companies.id"), index=True)
+    user_id = Column(String, ForeignKey("users.id"), index=True)
     sender = Column(String) # bot, user, human
     text = Column(Text)
-    timestamp_ms = Column(BigInteger)
+    timestamp_ms = Column(BigInteger, index=True)
 
 class LeadAnalysis(Base):
     __tablename__ = "lead_analysis"
     id = Column(BigInteger, primary_key=True, index=True, autoincrement=True)
-    user_id = Column(String, ForeignKey("users.id"))
-    company_id = Column(String, ForeignKey("companies.id"))
+    user_id = Column(String, ForeignKey("users.id"), index=True)
+    company_id = Column(String, ForeignKey("companies.id"), index=True)
     summary = Column(Text)
     sentiment_score = Column(String) # "Positivo", "Neutral", "Negativo"
     top_intents = Column(String) # Comas separados
