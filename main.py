@@ -964,7 +964,8 @@ async def get_company_settings(db: Session = Depends(get_db), current: models.Op
 
 @app.post("/wh/{token}")
 @app.post("/webhook/n8n/{token}")
-async def receive_user_msg(token: str, msg: MessageSchema, db: Session = Depends(get_db)):
+@limiter.limit("200/minute")
+async def receive_user_msg(request: Request, token: str, msg: MessageSchema, db: Session = Depends(get_db)):
     try:
         company = db.query(models.Company).filter(models.Company.webhook_token == token).first()
         if not company: return {"status": "error", "detail": "Token inválido"}
@@ -1049,7 +1050,8 @@ async def receive_user_msg(token: str, msg: MessageSchema, db: Session = Depends
         return {"status": "error", "detail": str(e)}
 
 @app.post("/webhook/n8n/handoff/{token}")
-async def n8n_handoff(token: str, data: HandoffSchema, db: Session = Depends(get_db)):
+@limiter.limit("200/minute")
+async def n8n_handoff(request: Request, token: str, data: HandoffSchema, db: Session = Depends(get_db)):
     company = db.query(models.Company).filter(models.Company.webhook_token == token).first()
     if not company: return {"status": "error"}
     
@@ -1114,7 +1116,8 @@ async def n8n_handoff(token: str, data: HandoffSchema, db: Session = Depends(get
     return {"status": "ok"}
 
 @app.post("/webhook/bot/{token}")
-async def receive_bot_msg(token: str, msg: MessageSchema, db: Session = Depends(get_db)):
+@limiter.limit("200/minute")
+async def receive_bot_msg(request: Request, token: str, msg: MessageSchema, db: Session = Depends(get_db)):
     company = db.query(models.Company).filter(models.Company.webhook_token == token).first()
     if not company: return {"status": "error", "detail": "Token inválido"}
     u_id = clean_user_id(msg.user_id)
@@ -1573,7 +1576,8 @@ async def send_n8n_webhook(url: str, payload: dict):
         print(f"Error enviando a n8n: {e}")
 
 @app.post("/api/messages/send")
-async def send_message(msg: SendMessageSchema, background_tasks: BackgroundTasks, company_id: Optional[str] = None, db: Session = Depends(get_db), current: models.Operator = Depends(get_current_operator)):
+@limiter.limit("60/minute")
+async def send_message(request: Request, msg: SendMessageSchema, background_tasks: BackgroundTasks, company_id: Optional[str] = None, db: Session = Depends(get_db), current: models.Operator = Depends(get_current_operator)):
     try:
         cid = company_id if (company_id and current.role == "super_admin") else current.company_id
         u_id = clean_user_id(msg.user_id)
@@ -1788,7 +1792,9 @@ async def get_whatsapp_templates(db: Session = Depends(get_db), current: models.
             return {"templates": [], "error": f"Error al consultar plantillas: {str(e)}"}
 
 @app.post("/api/remarketing/send")
+@limiter.limit("30/minute")
 async def send_remarketing_campaign(
+    request: Request,
     background_tasks: BackgroundTasks,
     template_name: str = Body(..., embed=True),
     user_ids: List[str] = Body(..., embed=True),
