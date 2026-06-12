@@ -1040,7 +1040,7 @@ async def receive_user_msg(request: Request, token: str, msg: MessageSchema, db:
         # Actualizar última actividad del usuario (PARA ORDEN CRONOLOGICO)
         user.last_activity = func.now()
         
-        if msg.intencion_asesor and str(msg.intencion_asesor).upper() == "SI":
+        if msg.intencion_asesor and str(msg.intencion_asesor).strip().upper() not in ["NO", "FALSE", "0", ""]:
             current_tags = user.tags or ""
             if "Solicita asesor" not in current_tags:
                 user.tags = current_tags + ", Solicita asesor" if current_tags else "Solicita asesor"
@@ -1140,7 +1140,7 @@ async def receive_bot_msg(request: Request, token: str, msg: MessageSchema, db: 
     if db_user:
         db_user.last_activity = func.now()
         
-        if msg.intencion_asesor and str(msg.intencion_asesor).upper() == "SI":
+        if msg.intencion_asesor and str(msg.intencion_asesor).strip().upper() not in ["NO", "FALSE", "0", ""]:
             current_tags = db_user.tags or ""
             if "Solicita asesor" not in current_tags:
                 db_user.tags = current_tags + ", Solicita asesor" if current_tags else "Solicita asesor"
