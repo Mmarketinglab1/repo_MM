@@ -1044,7 +1044,7 @@ async def receive_user_msg(request: Request, token: str, msg: MessageSchema, db:
             current_tags = user.tags or ""
             if "Solicita asesor" not in current_tags:
                 user.tags = current_tags + ", Solicita asesor" if current_tags else "Solicita asesor"
-            user.crm_status = "Esperando Operador"
+            user.crm_status = "Solicita Operador"
                 
         db.commit() # Guardamos actividad inmediatamente
         
@@ -1068,7 +1068,7 @@ async def n8n_handoff(request: Request, token: str, data: HandoffSchema, db: Ses
     if not user: return {"status": "error", "detail": "Lead no encontrado"}
     
     # 1. Cambiar estado
-    user.crm_status = "Esperando Operador"
+    user.crm_status = "Solicita Operador"
     user.observations = data.resumen
     db.commit()
 
@@ -1145,7 +1145,7 @@ async def receive_bot_msg(request: Request, token: str, msg: MessageSchema, db: 
             current_tags = db_user.tags or ""
             if "Solicita asesor" not in current_tags:
                 db_user.tags = current_tags + ", Solicita asesor" if current_tags else "Solicita asesor"
-            db_user.crm_status = "Esperando Operador"
+            db_user.crm_status = "Solicita Operador"
                 
     db.commit()
     await manager.broadcast({"event": "new_message", "user_id": u_id, "text": text_content, "sender": "bot"}, company.id)
@@ -1506,7 +1506,7 @@ async def get_stats_summary(
         assigned = op_leads_query.count()
         if assigned > 0:
             uncontacted = op_leads_query.filter(
-                models.User.crm_status.in_(['No Contactado', 'Esperando Operador', 'Re Marketing 0'])
+                models.User.crm_status.in_(['No Contactado', 'Solicita Operador', 'Re Marketing 0'])
             ).count()
             won = op_leads_query.filter(
                 models.User.crm_status == 'Vendido'

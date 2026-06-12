@@ -349,7 +349,7 @@
                         <select id="crm-filter-status" onchange="filterCRMLeads()" 
                             class="bg-white border border-slate-100 rounded-2xl px-4 py-4 text-sm font-bold text-slate-600 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition outline-none shadow-sm">
                             <option value="all">TODOS LOS ESTADOS</option>
-                            <option value="Esperando Operador">ESPERANDO OPERADOR</option>
+                            <option value="Solicita Operador">SOLICITA OPERADOR</option>
                             <option value="No Contactado">NO CONTACTADO</option>
                             <option value="Re Marketing 0">RE MARKETING 0</option>
                             <option value="Pendiente">PENDIENTE</option>
@@ -940,7 +940,7 @@
                     <div>
                         <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Estado</label>
                         <select id="lead-status" class="w-full bg-slate-50 p-4 rounded-2xl outline-none border border-slate-100 focus:border-blue-500 transition">
-                            <option value="Esperando Operador">Esperando Operador</option>
+                            <option value="Solicita Operador">Solicita Operador</option>
                             <option value="No Contactado">No Contactado</option>
                             <option value="Re Marketing 0">Re Marketing 0</option>
                             <option value="Pendiente">Pendiente</option>
@@ -1131,7 +1131,7 @@
         // --- AUTH ---
         function getStatusColor(status) {
             const colors = {
-                'Esperando Operador': 'status-esperando',
+                'Solicita Operador': 'status-esperando',
                 'No Contactado': 'status-no-contactado',
                 'Re Marketing 0': 'status-remarketing-0',
                 'Contactado': 'status-contactado',
@@ -1631,7 +1631,7 @@
                 
                 // Status Badge Logic
                 const statusColors = {
-                    'Esperando Operador': 'status-esperando',
+                    'Solicita Operador': 'status-esperando',
                     'No Contactado': 'status-no-contactado',
                     'Re Marketing 0': 'status-remarketing-0',
                     'Pendiente': 'status-pendiente',
@@ -1683,7 +1683,7 @@
                         <div class="relative inline-block text-[10px]">
                             <select onchange="updateLeadStatus('${l.id}', this.value)" 
                                 class="appearance-none font-bold px-3 py-1 rounded border outline-none bg-white transition-all cursor-pointer ${statusClass}">
-                                <option value="Esperando Operador" ${l.status === 'Esperando Operador' ? 'selected' : ''}>ESPERANDO OPERADOR</option>
+                                <option value="Solicita Operador" ${l.status === 'Solicita Operador' ? 'selected' : ''}>SOLICITA OPERADOR</option>
                                 <option value="No Contactado" ${l.status === 'No Contactado' ? 'selected' : ''}>NO CONTACTADO</option>
                                 <option value="Re Marketing 0" ${l.status === 'Re Marketing 0' ? 'selected' : ''}>RE MARKETING 0</option>
                                 <option value="Pendiente" ${l.status === 'Pendiente' ? 'selected' : ''}>PENDIENTE</option>
