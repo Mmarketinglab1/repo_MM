@@ -1044,6 +1044,7 @@ async def receive_user_msg(request: Request, token: str, msg: MessageSchema, db:
             current_tags = user.tags or ""
             if "Solicita asesor" not in current_tags:
                 user.tags = current_tags + ", Solicita asesor" if current_tags else "Solicita asesor"
+            user.crm_status = "Esperando Operador"
                 
         db.commit() # Guardamos actividad inmediatamente
         
@@ -1144,6 +1145,7 @@ async def receive_bot_msg(request: Request, token: str, msg: MessageSchema, db: 
             current_tags = db_user.tags or ""
             if "Solicita asesor" not in current_tags:
                 db_user.tags = current_tags + ", Solicita asesor" if current_tags else "Solicita asesor"
+            db_user.crm_status = "Esperando Operador"
                 
     db.commit()
     await manager.broadcast({"event": "new_message", "user_id": u_id, "text": text_content, "sender": "bot"}, company.id)
