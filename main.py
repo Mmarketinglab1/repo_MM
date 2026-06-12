@@ -430,6 +430,7 @@ class MessageSchema(BaseModel):
     phone: Optional[str] = None
     timestamp: Optional[Any] = None
     sender: Optional[str] = "user"
+    intencion_asesor: Optional[str] = None
 
 class HandoffSchema(BaseModel):
     user_id: str
@@ -1038,6 +1039,12 @@ async def receive_user_msg(request: Request, token: str, msg: MessageSchema, db:
         
         # Actualizar última actividad del usuario (PARA ORDEN CRONOLOGICO)
         user.last_activity = func.now()
+        
+        if msg.intencion_asesor and str(msg.intencion_asesor).upper() == "SI":
+            current_tags = user.tags or ""
+            if "Solicita asesor" not in current_tags:
+                user.tags = current_tags + ", Solicita asesor" if current_tags else "Solicita asesor"
+                
         db.commit() # Guardamos actividad inmediatamente
         
         await manager.broadcast({"event": "new_message", "user_id": u_id, "text": new_msg.text, "sender": final_sender}, company.id)
@@ -1133,6 +1140,11 @@ async def receive_bot_msg(request: Request, token: str, msg: MessageSchema, db: 
     if db_user:
         db_user.last_activity = func.now()
         
+        if msg.intencion_asesor and str(msg.intencion_asesor).upper() == "SI":
+            current_tags = db_user.tags or ""
+            if "Solicita asesor" not in current_tags:
+                db_user.tags = current_tags + ", Solicita asesor" if current_tags else "Solicita asesor"
+                
     db.commit()
     await manager.broadcast({"event": "new_message", "user_id": u_id, "text": text_content, "sender": "bot"}, company.id)
     return {"status": "ok"}
