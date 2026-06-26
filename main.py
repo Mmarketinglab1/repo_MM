@@ -1913,12 +1913,12 @@ async def upload_remarketing_media(
     os.makedirs("static/uploads", exist_ok=True)
     file_path = os.path.join("static/uploads", filename)
     
+    file_bytes = await file.read()
     with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+        buffer.write(file_bytes)
     
     # IMPORTANTE: WhatsApp requiere URLs absolutas para las plantillas multimedia
     public_url = f"{str(request.base_url).rstrip('/')}/static/uploads/{filename}"
-    return {"url": public_url}
     return {"url": public_url}
 
 @app.websocket("/ws/{username}")
