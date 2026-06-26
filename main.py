@@ -1238,7 +1238,7 @@ def get_conversations(
         subq_last_reply = db.query(
             models.Message.user_id,
             func.max(models.Message.timestamp_ms).label("last_reply_ts")
-        ).filter(models.Message.sender != 'user', models.Message.user_id.in_(user_ids))\
+        ).filter(models.Message.sender == 'human', models.Message.user_id.in_(user_ids))\
          .group_by(models.Message.user_id).subquery()
          
         stmt_unanswered = db.query(

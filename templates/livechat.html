@@ -1350,6 +1350,7 @@
         
         function renderConversationsList() {
             let dataToRender = [...currentConversationsData];
+            const lastReadMap = JSON.parse(localStorage.getItem('lastReadMap') || '{}');
             if (convDateSortOrder === 'asc') {
                 dataToRender.reverse(); // El backend ya los devuelve en orden desc (más reciente primero)
             }
@@ -1381,7 +1382,7 @@
                                     <span class="text-[9px] font-bold text-slate-400">
                                         ${new Date(c.last_message_ts).toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'})}
                                     </span>
-                                    ${c.unanswered_count > 0 ? `
+                                    ${c.unanswered_count > 0 && (!lastReadMap[c.id] || new Date(c.last_message_ts).getTime() > lastReadMap[c.id]) ? `
                                         <span class="bg-[#25D366] text-white text-[9px] font-bold h-4 min-w-[16px] px-1 rounded-full flex items-center justify-center">
                                             ${c.unanswered_count}
                                         </span>
@@ -1409,6 +1410,11 @@
             lastMsgCount = 0;
             currentTags = tagsStr ? tagsStr.split(',').filter(t => t.trim()) : [];
             
+            const lastReadMap = JSON.parse(localStorage.getItem('lastReadMap') || '{}');
+            lastReadMap[id] = Date.now();
+            localStorage.setItem('lastReadMap', JSON.stringify(lastReadMap));
+            renderConversationsList();
+
             document.getElementById('chat-header-info').classList.remove('hidden');
             document.getElementById('chat-input-area').classList.remove('hidden');
             document.getElementById('chat-input-area').classList.add('flex');
