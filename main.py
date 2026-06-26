@@ -1235,6 +1235,7 @@ def get_conversations(
         last_msg_details = {m.user_id: {"text": m.text, "sender": m.sender, "ts": m.timestamp_ms} for m in latest_msgs}
 
         # Calcular mensajes sin contestar (ignorando el bot, solo cuenta desde la ultima vez que hablo el humano)
+        from sqlalchemy import or_
         subq_last_reply = db.query(
             models.Message.user_id,
             func.max(models.Message.timestamp_ms).label("last_reply_ts")
