@@ -1235,35 +1235,27 @@ def get_conversations(
         last_msg_details = {m.user_id: {"text": m.text, "sender": m.sender, "ts": m.timestamp_ms} for m in latest_msgs}
 
         # Calcular mensajes sin contestar (ignorando el bot, solo cuenta desde la ultima vez que hablo el humano)
-        last_reply_map = {}
-        unanswered_map = {}
-        if user_ids:
-            stmt_last_reply = db.query(
-                models.Message.user_id,
-                func.max(models.Message.timestamp_ms).label("last_reply_ts")
-            ).filter(
-                models.Message.sender == 'human',
-                models.Message.user_id.in_(user_ids)
-            ).group_by(models.Message.user_id).all()
-            
-            last_reply_map = {row.user_id: row.last_reply_ts for row in stmt_last_reply}
-            
-            all_user_msgs = db.query(
-                models.Message.user_id,
-                models.Message.timestamp_ms
-            ).filter(
-                models.Message.user_id.in_(user_ids),
-                models.Message.sender == 'user'
-            ).all()
-            
-            for m in all_user_msgs:
-                if m.timestamp_ms is None:
-                    continue
-                last_rep = last_reply_map.get(m.user_id)
-                if last_rep is None:
-                    last_rep = 0
-                if m.timestamp_ms > last_rep:
-                    unanswered_map[m.user_id] = unanswered_map.get(m.user_id, 0) + 1
+        subq_last_reply = db.query(
+            models.Message.user_id,
+            func.max(models.Message.timestamp_ms).label("last_reply_ts")
+        ).filter(models.Message.sender == 'human', models.Message.user_id.in_(user_ids))\
+         .group_by(models.Message.user_id).subquery()
+         
+        stmt_unanswered = db.query(
+            models.Message.user_id,
+            func.count(models.Message.id).label("unanswered_count")
+        ).outerjoin(
+            subq_last_reply, models.Message.user_id == subq_last_reply.c.user_id
+        ).filter(
+            models.Message.user_id.in_(user_ids),
+            models.Message.sender == 'user',
+            or_(
+                subq_last_reply.c.last_reply_ts == None,
+                models.Message.timestamp_ms > subq_last_reply.c.last_reply_ts
+            )
+        ).group_by(models.Message.user_id).all()
+        
+        unanswered_map = {row.user_id: row.unanswered_count for row in stmt_unanswered}
 
 
     # Ordenar conversaciones por el chat más reciente
