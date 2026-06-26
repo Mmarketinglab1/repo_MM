@@ -1234,6 +1234,7 @@ def get_conversations(
                         
         last_msg_details = {m.user_id: {"text": m.text, "sender": m.sender, "ts": m.timestamp_ms} for m in latest_msgs}
 
+        from sqlalchemy import cast, BigInteger
         # Calcular mensajes sin contestar (consecutivos del usuario al final)
         subq_last_reply = db.query(
             models.Message.user_id,
@@ -1249,7 +1250,7 @@ def get_conversations(
         ).filter(
             models.Message.user_id.in_(user_ids),
             models.Message.sender == 'user',
-            models.Message.timestamp_ms > func.coalesce(subq_last_reply.c.last_reply_ts, 0)
+            models.Message.timestamp_ms > func.coalesce(subq_last_reply.c.last_reply_ts, cast(0, BigInteger))
         ).group_by(models.Message.user_id).all()
         
         unanswered_map = {row.user_id: row.unanswered_count for row in stmt_unanswered}
