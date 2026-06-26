@@ -1369,6 +1369,19 @@
                             ${!c.is_bot_active ? '<i class="fas fa-user text-[10px] text-indigo-600" title="Intervención Humana"></i>' : ''}
                         </div>
                         <p class="text-[10px] text-slate-500 font-medium">${c.phone}</p>
+                        <div class="mt-2 flex items-center justify-between gap-2 max-w-full">
+                            <p class="text-[11px] text-slate-600 truncate flex-1 leading-snug">
+                                ${c.last_message_text ? (
+                                    (c.last_message_sender === 'bot' || c.last_message_sender === 'human' || c.last_message_sender === 'system' ? '<span class="font-bold text-slate-400">Tú:</span> ' : '') 
+                                    + c.last_message_text
+                                ) : '<span class="italic text-slate-400">Sin mensajes</span>'}
+                            </p>
+                            ${c.last_message_ts ? `
+                                <span class="text-[9px] font-bold text-slate-400 shrink-0">
+                                    ${new Date(c.last_message_ts).toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'})}
+                                </span>
+                            ` : ''}
+                        </div>
                         <div class="flex gap-1 mt-1 truncate">
                             ${c.tags ? c.tags.split(',').map(t => `<span class="bg-slate-100 text-slate-400 text-[8px] font-bold px-1.5 py-0.5 rounded border border-slate-200 uppercase">${t}</span>`).join('') : ''}
                         </div>

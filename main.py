@@ -1211,7 +1211,7 @@ def get_conversations(
     # Obtener el último mensaje del usuario para la ventana de 24hs y para el orden
     user_ids = [u.id for u in users]
     last_msg_map = {}
-    last_activity_map = {}
+    last_msg_details = {}
     if user_ids:
         stmt_user = db.query(models.Message.user_id, func.max(models.Message.timestamp_ms).label('max_ts'))\
                  .filter(models.Message.user_id.in_(user_ids), models.Message.sender == 'user')\
@@ -1222,6 +1222,17 @@ def get_conversations(
                  .filter(models.Message.user_id.in_(user_ids))\
                  .group_by(models.Message.user_id).all()
         last_activity_map = {row.user_id: row.max_ts for row in stmt_all}
+
+        # Subconsulta para obtener el último mensaje real
+        subq = db.query(models.Message.user_id, func.max(models.Message.id).label('max_id'))\
+                 .filter(models.Message.user_id.in_(user_ids))\
+                 .group_by(models.Message.user_id).subquery()
+                 
+        latest_msgs = db.query(models.Message)\
+                        .join(subq, models.Message.id == subq.c.max_id)\
+                        .all()
+                        
+        last_msg_details = {m.user_id: {"text": m.text, "sender": m.sender, "ts": m.timestamp_ms} for m in latest_msgs}
 
     # Ordenar conversaciones por el chat más reciente
     users.sort(key=lambda u: last_activity_map.get(u.id, int(u.created_at.timestamp() * 1000) if hasattr(u, 'created_at') and u.created_at else 0), reverse=True)
@@ -1246,7 +1257,10 @@ def get_conversations(
         "assigned_name": op_map.get(u.assigned_to, "Sin Asignar"),
         "is_bot_active": u.is_bot_active,
         "is_24h_window_closed": (current_time_ms - last_msg_map.get(u.id, 0)) > window_24h_ms if last_msg_map.get(u.id) else True,
-        "created_at": (u.created_at.isoformat() + "Z") if hasattr(u, 'created_at') and u.created_at else None
+        "created_at": (u.created_at.isoformat() + "Z") if hasattr(u, 'created_at') and u.created_at else None,
+        "last_message_text": last_msg_details.get(u.id, {}).get("text", ""),
+        "last_message_sender": last_msg_details.get(u.id, {}).get("sender", ""),
+        "last_message_ts": last_msg_details.get(u.id, {}).get("ts", 0)
     } for u in users]
 
 @app.get("/api/messages/{user_id}")
