@@ -1257,7 +1257,11 @@ def get_conversations(
             ).all()
             
             for m in all_user_msgs:
-                last_rep = last_reply_map.get(m.user_id, 0)
+                if m.timestamp_ms is None:
+                    continue
+                last_rep = last_reply_map.get(m.user_id)
+                if last_rep is None:
+                    last_rep = 0
                 if m.timestamp_ms > last_rep:
                     unanswered_map[m.user_id] = unanswered_map.get(m.user_id, 0) + 1
 
