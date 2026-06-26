@@ -1377,9 +1377,16 @@
                                 ) : '<span class="italic text-slate-400">Sin mensajes</span>'}
                             </p>
                             ${c.last_message_ts ? `
-                                <span class="text-[9px] font-bold text-slate-400 shrink-0">
-                                    ${new Date(c.last_message_ts).toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'})}
-                                </span>
+                                <div class="flex flex-col items-end gap-1 shrink-0">
+                                    <span class="text-[9px] font-bold text-slate-400">
+                                        ${new Date(c.last_message_ts).toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'})}
+                                    </span>
+                                    ${c.unanswered_count > 0 ? `
+                                        <span class="bg-[#25D366] text-white text-[9px] font-bold h-4 min-w-[16px] px-1 rounded-full flex items-center justify-center">
+                                            ${c.unanswered_count}
+                                        </span>
+                                    ` : ''}
+                                </div>
                             ` : ''}
                         </div>
                         <div class="flex gap-1 mt-1 truncate">

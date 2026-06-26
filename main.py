@@ -1234,6 +1234,27 @@ def get_conversations(
                         
         last_msg_details = {m.user_id: {"text": m.text, "sender": m.sender, "ts": m.timestamp_ms} for m in latest_msgs}
 
+        # Calcular mensajes sin contestar (consecutivos del usuario al final)
+        subq_last_reply = db.query(
+            models.Message.user_id,
+            func.max(models.Message.timestamp_ms).label("last_reply_ts")
+        ).filter(models.Message.sender != 'user', models.Message.user_id.in_(user_ids))\
+         .group_by(models.Message.user_id).subquery()
+         
+        stmt_unanswered = db.query(
+            models.Message.user_id,
+            func.count(models.Message.id).label("unanswered_count")
+        ).outerjoin(
+            subq_last_reply, models.Message.user_id == subq_last_reply.c.user_id
+        ).filter(
+            models.Message.user_id.in_(user_ids),
+            models.Message.sender == 'user',
+            models.Message.timestamp_ms > func.coalesce(subq_last_reply.c.last_reply_ts, 0)
+        ).group_by(models.Message.user_id).all()
+        
+        unanswered_map = {row.user_id: row.unanswered_count for row in stmt_unanswered}
+
+
     # Ordenar conversaciones por el chat más reciente
     users.sort(key=lambda u: last_activity_map.get(u.id, int(u.created_at.timestamp() * 1000) if hasattr(u, 'created_at') and u.created_at else 0), reverse=True)
     
@@ -1260,7 +1281,8 @@ def get_conversations(
         "created_at": (u.created_at.isoformat() + "Z") if hasattr(u, 'created_at') and u.created_at else None,
         "last_message_text": last_msg_details.get(u.id, {}).get("text", ""),
         "last_message_sender": last_msg_details.get(u.id, {}).get("sender", ""),
-        "last_message_ts": last_msg_details.get(u.id, {}).get("ts", 0)
+        "last_message_ts": last_msg_details.get(u.id, {}).get("ts", 0),
+        "unanswered_count": unanswered_map.get(u.id, 0) if 'unanswered_map' in locals() else 0
     } for u in users]
 
 @app.get("/api/messages/{user_id}")
