@@ -1347,10 +1347,19 @@
             currentConversationsData = await res.json();
             renderConversationsList();
         }
+        function getSafeLastReadMap() {
+            try { return JSON.parse(localStorage.getItem('lastReadMap') || '{}'); } 
+            catch (e) { return {}; }
+        }
         
+        function saveSafeLastReadMap(map) {
+            try { localStorage.setItem('lastReadMap', JSON.stringify(map)); } 
+            catch (e) { console.warn("localStorage not available"); }
+        }
+
         function renderConversationsList() {
             let dataToRender = [...currentConversationsData];
-            const lastReadMap = JSON.parse(localStorage.getItem('lastReadMap') || '{}');
+            const lastReadMap = getSafeLastReadMap();
             if (convDateSortOrder === 'asc') {
                 dataToRender.reverse(); // El backend ya los devuelve en orden desc (más reciente primero)
             }
@@ -1410,9 +1419,9 @@
             lastMsgCount = 0;
             currentTags = tagsStr ? tagsStr.split(',').filter(t => t.trim()) : [];
             
-            const lastReadMap = JSON.parse(localStorage.getItem('lastReadMap') || '{}');
+            const lastReadMap = getSafeLastReadMap();
             lastReadMap[id] = Date.now();
-            localStorage.setItem('lastReadMap', JSON.stringify(lastReadMap));
+            saveSafeLastReadMap(lastReadMap);
             renderConversationsList();
 
             document.getElementById('chat-header-info').classList.remove('hidden');
