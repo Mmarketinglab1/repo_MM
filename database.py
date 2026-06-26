@@ -23,10 +23,7 @@ else:
 
 engine = create_engine(
     DATABASE_URL, 
-    pool_pre_ping=True,
-    pool_recycle=300,
-    pool_size=5,
-    max_overflow=15,
+    poolclass=NullPool,
     connect_args={
         "connect_timeout": 10,
         "keepalives": 1,
