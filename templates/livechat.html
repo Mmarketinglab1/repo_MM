@@ -69,6 +69,7 @@
             background: var(--zoho-border);
             box-shadow: -2px 0 5px rgba(0,0,0,0.05);
         }
+        .hide-actions .acciones-col { display: none !important; }
     </style>
 </head>
 <body class="h-screen flex text-slate-700">
@@ -364,6 +365,10 @@
 
                         <div class="flex items-center gap-3 overflow-x-auto w-full md:w-auto">
                             <div class="flex flex-col">
+                                <label class="text-[9px] font-black uppercase text-slate-400 ml-2 mb-1">Etiqueta</label>
+                                <input type="text" id="crm-filter-tag" placeholder="Ej: VIP" oninput="filterCRMLeads()" class="bg-white border border-slate-100 rounded-2xl px-4 py-3 text-sm font-bold text-slate-600 focus:ring-4 focus:ring-blue-500/10 outline-none shadow-sm h-[54px] w-[110px]">
+                            </div>
+                            <div class="flex flex-col">
                                 <label class="text-[9px] font-black uppercase text-slate-400 ml-2 mb-1">Desde</label>
                                 <input type="date" id="crm-filter-date-from" onchange="loadCRMLeads()" class="bg-white border border-slate-100 rounded-2xl px-4 py-3 text-sm font-bold text-slate-600 focus:ring-4 focus:ring-blue-500/10 outline-none shadow-sm h-[54px]">
                             </div>
@@ -380,9 +385,14 @@
                             </div>
                             <div class="flex flex-col justify-end h-full">
                                 <label class="text-[9px] font-black uppercase text-transparent mb-1 block select-none">X</label>
-                                <button onclick="clearCRMFilters()" class="bg-slate-100 hover:bg-slate-200 text-slate-500 px-4 py-3 rounded-2xl transition shadow-sm h-[54px] flex items-center justify-center" title="Limpiar Filtros">
-                                    <i class="fas fa-times"></i>
-                                </button>
+                                <div class="flex items-center gap-2">
+                                    <button onclick="toggleActionsColumn()" id="btn-toggle-actions" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-500 px-4 py-3 rounded-2xl transition shadow-sm h-[54px] flex items-center justify-center" title="Mostrar/Ocultar Acciones">
+                                        <i class="fas fa-eye-slash"></i>
+                                    </button>
+                                    <button onclick="clearCRMFilters()" class="bg-slate-100 hover:bg-slate-200 text-slate-500 px-4 py-3 rounded-2xl transition shadow-sm h-[54px] flex items-center justify-center" title="Limpiar Filtros">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -391,7 +401,7 @@
                         </div>
                     </div>
                     <div class="overflow-x-auto w-full">
-                        <table class="w-full text-left whitespace-nowrap md:whitespace-normal">
+                        <table class="w-full text-left whitespace-nowrap md:whitespace-normal" id="crm-table">
                             <thead class="bg-slate-50 border-b border-slate-100">
                                 <tr>
                                     <th onclick="toggleCRMDateSort()" class="p-4 md:p-6 text-[10px] font-black uppercase text-slate-400 cursor-pointer hover:text-blue-600 transition-colors group">
@@ -402,7 +412,7 @@
                                     <th class="p-4 md:p-6 text-[10px] font-black uppercase text-slate-400">Estado</th>
                                     <th class="p-4 md:p-6 text-[10px] font-black uppercase text-slate-400">Operador</th>
                                     <th class="p-4 md:p-6 text-[10px] font-black uppercase text-slate-400">Etiquetas</th>
-                                    <th class="p-4 md:p-6 text-[10px] font-black uppercase text-slate-400 text-right sticky-col">Acciones</th>
+                                    <th class="p-4 md:p-6 text-[10px] font-black uppercase text-slate-400 text-right sticky-col acciones-col">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="crm-table-body"></tbody>
@@ -1573,10 +1583,18 @@
             filterCRMLeads(); // Aplica filtros locales (texto, status) y renderiza
         }
 
+        let showActionsColumn = true;
+        function toggleActionsColumn() {
+            showActionsColumn = !showActionsColumn;
+            document.getElementById('btn-toggle-actions').innerHTML = showActionsColumn ? '<i class="fas fa-eye-slash"></i>' : '<i class="fas fa-eye"></i>';
+            document.getElementById('crm-table').classList.toggle('hide-actions');
+        }
+
         function clearCRMFilters() {
             if (document.getElementById('crm-filter-date-from')) document.getElementById('crm-filter-date-from').value = '';
             if (document.getElementById('crm-filter-date-to')) document.getElementById('crm-filter-date-to').value = '';
             if (document.getElementById('crm-filter-operator')) document.getElementById('crm-filter-operator').value = 'all';
+            if (document.getElementById('crm-filter-tag')) document.getElementById('crm-filter-tag').value = '';
             document.getElementById('crm-search').value = '';
             document.getElementById('crm-filter-status').value = 'all';
             loadCRMLeads();
@@ -1595,16 +1613,19 @@
         function filterCRMLeads() {
             const query = document.getElementById('crm-search').value.toLowerCase().trim();
             const statusFilter = document.getElementById('crm-filter-status').value;
+            const tagFilter = (document.getElementById('crm-filter-tag')?.value || '').toLowerCase().trim();
 
             let filtered = crmLeads.filter(l => {
                 const name = (l.user || "").toLowerCase();
                 const phone = (l.phone || l.id || "").toLowerCase();
                 const status = l.status || "No Contactado";
+                const tags = (l.tags || "").toLowerCase();
                 
                 const matchesSearch = name.includes(query) || phone.includes(query);
                 const matchesStatus = statusFilter === 'all' || status === statusFilter;
+                const matchesTag = tagFilter === '' || tags.includes(tagFilter);
                 
-                return matchesSearch && matchesStatus;
+                return matchesSearch && matchesStatus && matchesTag;
             });
             // Aplicar Ordenamiento por Fecha
             filtered.sort((a, b) => {
@@ -1703,7 +1724,7 @@
                             ${l.tags ? l.tags.split(',').map(t => `<span class="bg-slate-50 text-slate-400 text-[9px] font-bold px-2 py-0.5 rounded border border-slate-100 uppercase">${t}</span>`).join('') : '<span class="text-slate-300 text-[10px]">Sin etiquetas</span>'}
                         </div>
                     </td>
-                    <td class="px-6 py-4 sticky-col">
+                    <td class="px-6 py-4 sticky-col acciones-col">
                          <div class="flex justify-end gap-1.5 transition-opacity">
                             <a href="${waLink}" target="_blank" class="w-8 h-8 flex items-center justify-center rounded-lg text-emerald-600 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-all shadow-sm" title="WhatsApp">
                                 <i class="fab fa-whatsapp"></i>
