@@ -28,6 +28,7 @@
         /* Caching/Purging Override: Classes estáticas a prueba de fallos para los estados */
         .status-esperando { background-color: #f1f5f9 !important; color: #64748b !important; border-color: #e2e8f0 !important; }
         .status-no-contactado { background-color: #fef2f2 !important; color: #dc2626 !important; border-color: #fecaca !important; }
+        .status-mansi { background-color: #1e293b !important; color: #f8fafc !important; border-color: #0f172a !important; }
         .status-pendiente { background-color: #fffbeb !important; color: #d97706 !important; border-color: #fde68a !important; }
         .status-no-contesto-wa { background-color: #f8fafc !important; color: #475569 !important; border-color: #e2e8f0 !important; }
         .status-informar-estado { background-color: #eff6ff !important; color: #2563eb !important; border-color: #bfdbfe !important; }
@@ -352,6 +353,7 @@
                             <option value="all">TODOS LOS ESTADOS</option>
                             <option value="Solicita Operador">SOLICITA OPERADOR</option>
                             <option value="No Contactado">NO CONTACTADO</option>
+                            <option value="MANSI">MANSI</option>
                             <option value="Re Marketing 0">RE MARKETING 0</option>
                             <option value="Pendiente">PENDIENTE</option>
                             <option value="No Contesto WA">NO CONTESTO WA</option>
@@ -405,6 +407,7 @@
                                 <select id="crm-bulk-status" class="bg-white border border-blue-200 rounded px-2 py-1 text-[10px] font-bold text-slate-600 outline-none">
                                     <option value="Solicita Operador">SOLICITA OPERADOR</option>
                                     <option value="No Contactado">NO CONTACTADO</option>
+                                    <option value="MANSI">MANSI</option>
                                     <option value="Re Marketing 0">RE MARKETING 0</option>
                                     <option value="Pendiente">PENDIENTE</option>
                                     <option value="No Contesto WA">NO CONTESTO WA</option>
@@ -699,6 +702,7 @@
                                 <option value="all">TODOS LOS ESTADOS</option>
                                 <option value="Solicita Operador">SOLICITA OPERADOR</option>
                                 <option value="No Contactado">NO CONTACTADO</option>
+                                <option value="MANSI">MANSI</option>
                                 <option value="Re Marketing 0">RE MARKETING 0</option>
                                 <option value="Pendiente">PENDIENTE</option>
                                 <option value="No Contesto WA">NO CONTESTO WA</option>
@@ -988,6 +992,7 @@
                         <select id="lead-status" class="w-full bg-slate-50 p-4 rounded-2xl outline-none border border-slate-100 focus:border-blue-500 transition">
                             <option value="Solicita Operador">Solicita Operador</option>
                             <option value="No Contactado">No Contactado</option>
+                            <option value="MANSI">MANSI</option>
                             <option value="Re Marketing 0">Re Marketing 0</option>
                             <option value="Pendiente">Pendiente</option>
                             <option value="No Contesto WA">No Contesto WA</option>
@@ -1179,6 +1184,7 @@
             const colors = {
                 'Solicita Operador': 'status-esperando',
                 'No Contactado': 'status-no-contactado',
+                'MANSI': 'status-mansi',
                 'Re Marketing 0': 'status-remarketing-0',
                 'Contactado': 'status-contactado',
                 'Interesado': 'status-interesado',
@@ -1729,6 +1735,7 @@
                 const statusColors = {
                     'Solicita Operador': 'status-esperando',
                     'No Contactado': 'status-no-contactado',
+                    'MANSI': 'status-mansi',
                     'Re Marketing 0': 'status-remarketing-0',
                     'Pendiente': 'status-pendiente',
                     'No Contesto WA': 'status-no-contesto-wa',

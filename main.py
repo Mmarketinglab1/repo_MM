@@ -1045,6 +1045,17 @@ async def receive_user_msg(request: Request, token: str, msg: MessageSchema, db:
             if "Solicita asesor" not in current_tags:
                 user.tags = current_tags + ", Solicita asesor" if current_tags else "Solicita asesor"
             user.crm_status = "Solicita Operador"
+            
+        # Detección de estado MANSI por palabras clave
+        if final_sender == "user":
+            txt_lower = text_content.lower()
+            mansi_keywords = [
+                "no quiero", "no me interesa", "no gracias", "no me llamen", "no me contacten",
+                "no por ahora", "lo estoy pensando", "lo voy a pensar", "dejame pensar",
+                "dejame que lo piense", "mas adelante", "por el momento no", "ya no quiero", "estoy evaluando"
+            ]
+            if any(kw in txt_lower for kw in mansi_keywords):
+                user.crm_status = "MANSI"
                 
         db.commit() # Guardamos actividad inmediatamente
         
