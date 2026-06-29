@@ -396,14 +396,36 @@
                             </div>
                         </div>
 
-                        <div class="text-slate-400 text-xs font-bold px-4 shrink-0 whitespace-nowrap">
-                            <span id="crm-count-visible">0</span> / <span id="crm-count-total">0</span> leads
+                        <div class="text-slate-400 text-xs font-bold px-4 shrink-0 whitespace-nowrap flex items-center justify-between">
+                            <div><span id="crm-count-visible">0</span> / <span id="crm-count-total">0</span> leads</div>
+                            
+                            <!-- Bulk Actions Panel (Hidden by default) -->
+                            <div id="crm-bulk-actions" class="hidden flex items-center gap-2 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100">
+                                <span class="text-[10px] font-bold text-blue-600"><span id="crm-selected-count">0</span> seleccionados</span>
+                                <select id="crm-bulk-status" class="bg-white border border-blue-200 rounded px-2 py-1 text-[10px] font-bold text-slate-600 outline-none">
+                                    <option value="Solicita Operador">SOLICITA OPERADOR</option>
+                                    <option value="No Contactado">NO CONTACTADO</option>
+                                    <option value="Re Marketing 0">RE MARKETING 0</option>
+                                    <option value="Pendiente">PENDIENTE</option>
+                                    <option value="No Contesto WA">NO CONTESTO WA</option>
+                                    <option value="Informar Estado">INFORMAR ESTADO</option>
+                                    <option value="Hablo y No Cerro">HABLO Y NO CERRO</option>
+                                    <option value="En Proceso">EN PROCESO</option>
+                                    <option value="Contactado">CONTACTADO</option>
+                                    <option value="Interesado">INTERESADO</option>
+                                    <option value="Vendido">VENDIDO</option>
+                                </select>
+                                <button onclick="applyBulkCRMStatus()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-[10px] font-bold transition shadow-sm">Aplicar</button>
+                            </div>
                         </div>
                     </div>
                     <div class="overflow-x-auto w-full">
                         <table class="w-full text-left whitespace-nowrap md:whitespace-normal" id="crm-table">
                             <thead class="bg-slate-50 border-b border-slate-100">
                                 <tr>
+                                    <th class="p-4 w-12 text-center">
+                                        <input type="checkbox" id="crm-select-all" onclick="toggleAllCRMLeads(this)" class="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+                                    </th>
                                     <th onclick="toggleCRMDateSort()" class="p-4 md:p-6 text-[10px] font-black uppercase text-slate-400 cursor-pointer hover:text-blue-600 transition-colors group">
                                         Fecha <i id="crm-date-sort-icon" class="fas fa-sort ml-1 text-slate-300 group-hover:text-blue-400"></i>
                                     </th>
@@ -668,20 +690,34 @@
                         </div>
 
                         <!-- Filters -->
-                        <div class="grid grid-cols-3 gap-3">
-                            <div class="relative">
+                        <div class="grid grid-cols-2 md:grid-cols-6 gap-3">
+                            <div class="relative md:col-span-2">
                                 <i class="fas fa-search absolute left-3 top-3 text-slate-400 text-xs"></i>
                                 <input type="text" id="rm-search" placeholder="Buscar por nombre..." oninput="filterRemarketingLeads()" class="w-full h-9 pl-9 pr-3 rounded-lg border border-slate-200 focus:border-purple-500 outline-none text-xs transition-all">
                             </div>
                             <select id="rm-filter-status" onchange="loadRemarketingLeads()" class="h-9 px-3 rounded-lg border border-slate-200 focus:border-purple-500 outline-none text-xs text-slate-600 bg-slate-50">
-                                <option value="all">Cualquier Estado</option>
-                                <option value="No contactado">No contactado</option>
-                                <option value="Contactado">Contactado</option>
-                                <option value="Interesado">Interesado</option>
-                                <option value="Vendido">Vendido</option>
-                                <option value="Re Marketing 0">Re Marketing 0</option>
+                                <option value="all">TODOS LOS ESTADOS</option>
+                                <option value="Solicita Operador">SOLICITA OPERADOR</option>
+                                <option value="No Contactado">NO CONTACTADO</option>
+                                <option value="Re Marketing 0">RE MARKETING 0</option>
+                                <option value="Pendiente">PENDIENTE</option>
+                                <option value="No Contesto WA">NO CONTESTO WA</option>
+                                <option value="Informar Estado">INFORMAR ESTADO</option>
+                                <option value="Hablo y No Cerro">HABLO Y NO CERRO</option>
+                                <option value="En Proceso">EN PROCESO</option>
+                                <option value="Contactado">CONTACTADO</option>
+                                <option value="Interesado">INTERESADO</option>
+                                <option value="Vendido">VENDIDO</option>
                             </select>
-                            <input type="text" id="rm-filter-tag" placeholder="Filtrar por etiqueta..." oninput="filterRemarketingLeads()" class="h-9 px-3 rounded-lg border border-slate-200 focus:border-purple-500 outline-none text-xs bg-slate-50">
+                            <input type="date" id="rm-filter-date-from" onchange="loadRemarketingLeads()" class="h-9 px-3 rounded-lg border border-slate-200 focus:border-purple-500 outline-none text-xs text-slate-600 bg-slate-50" title="Desde">
+                            <input type="date" id="rm-filter-date-to" onchange="loadRemarketingLeads()" class="h-9 px-3 rounded-lg border border-slate-200 focus:border-purple-500 outline-none text-xs text-slate-600 bg-slate-50" title="Hasta">
+                            <select id="rm-filter-operator" onchange="loadRemarketingLeads()" class="h-9 px-3 rounded-lg border border-slate-200 focus:border-purple-500 outline-none text-xs text-slate-600 bg-slate-50">
+                                <option value="all">TODOS LOS VEND.</option>
+                                <option value="unassigned">SIN ASIGNAR</option>
+                            </select>
+                        </div>
+                        <div class="mt-3">
+                            <input type="text" id="rm-filter-tag" placeholder="Filtrar por etiqueta..." oninput="filterRemarketingLeads()" class="w-full md:w-1/3 h-9 px-3 rounded-lg border border-slate-200 focus:border-purple-500 outline-none text-xs bg-slate-50">
                         </div>
                     </div>
 
@@ -1604,6 +1640,8 @@
         }
 
         // --- CRM ---
+        let selectedCrmLeadIds = new Set();
+        
         async function loadCRMLeads() {
             let url = '/api/conversations?';
             const df = document.getElementById('crm-filter-date-from')?.value;
@@ -1663,18 +1701,20 @@
                 return matchesSearch && matchesStatus && matchesTag;
             });
             // Aplicar Ordenamiento por Fecha
-            filtered.sort((a, b) => {
-                const dateA = new Date(a.created_at || 0);
-                const dateB = new Date(b.created_at || 0);
-                return (crmDateSortOrder === 'desc') ? dateB - dateA : dateA - dateB;
-            });
+            if (crmDateSortOrder === 'asc') {
+                filtered.sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+            } else {
+                filtered.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+            }
 
+            document.getElementById('crm-count-visible').innerText = filtered.length;
+            document.getElementById('crm-count-total').innerText = crmLeads.length;
+            
+            updateCRMBulkActionsPanel();
             renderCRMTable(filtered);
         }
 
         function renderCRMTable(leads) {
-            document.getElementById('crm-count-visible').innerText = leads.length;
-            document.getElementById('crm-count-total').innerText = crmLeads.length;
             
             const opsOptions = '<option value="">Sin Asignar</option>' + companyOperators.map(o => `<option value="${o.id}">${o.full_name}</option>`).join('');
 
@@ -1717,6 +1757,9 @@
 
                 return `
                 <tr class="border-b border-slate-100 hover:bg-slate-50/50 transition-colors group">
+                    <td class="p-4 text-center">
+                        <input type="checkbox" onchange="toggleCRMLeadSelection('${l.id}', this)" ${selectedCrmLeadIds.has(String(l.id)) ? 'checked' : ''} class="crm-lead-checkbox w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+                    </td>
                     <td class="p-4 md:p-6 text-xs text-slate-500 font-medium">
                         ${dateStr}
                     </td>
@@ -1793,7 +1836,91 @@
             if (res.ok) {
                 const lead = crmLeads.find(l => l.id === id);
                 if (lead) lead.status = newStatus;
-                renderCRMTable(crmLeads);
+                filterCRMLeads();
+            }
+        }
+        
+        function toggleAllCRMLeads(source) {
+            const checkboxes = document.querySelectorAll('.crm-lead-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = source.checked;
+                const leadId = cb.getAttribute('onchange').match(/'([^']+)'/)[1];
+                if (source.checked) {
+                    selectedCrmLeadIds.add(leadId);
+                } else {
+                    selectedCrmLeadIds.delete(leadId);
+                }
+            });
+            updateCRMBulkActionsPanel();
+        }
+
+        function toggleCRMLeadSelection(id, checkbox) {
+            if (checkbox.checked) {
+                selectedCrmLeadIds.add(String(id));
+            } else {
+                selectedCrmLeadIds.delete(String(id));
+                document.getElementById('crm-select-all').checked = false;
+            }
+            updateCRMBulkActionsPanel();
+        }
+
+        function updateCRMBulkActionsPanel() {
+            const panel = document.getElementById('crm-bulk-actions');
+            const countSpan = document.getElementById('crm-selected-count');
+            if (panel && countSpan) {
+                if (selectedCrmLeadIds.size > 0) {
+                    panel.classList.remove('hidden');
+                    countSpan.innerText = selectedCrmLeadIds.size;
+                } else {
+                    panel.classList.add('hidden');
+                }
+            }
+        }
+
+        async function applyBulkCRMStatus() {
+            if (selectedCrmLeadIds.size === 0) return;
+            const newStatus = document.getElementById('crm-bulk-status').value;
+            
+            const btn = document.querySelector('#crm-bulk-actions button');
+            const originalText = btn.innerText;
+            btn.innerText = 'Aplicando...';
+            btn.disabled = true;
+
+            try {
+                const res = await superFetch('/api/crm/bulk_status', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        user_ids: Array.from(selectedCrmLeadIds),
+                        status: newStatus 
+                    })
+                });
+                
+                if (res.ok) {
+                    // Update local state
+                    Array.from(selectedCrmLeadIds).forEach(id => {
+                        const lead = crmLeads.find(l => l.id === id);
+                        if (lead) lead.status = newStatus;
+                    });
+                    
+                    // Clear selection
+                    selectedCrmLeadIds.clear();
+                    const selectAllCb = document.getElementById('crm-select-all');
+                    if (selectAllCb) selectAllCb.checked = false;
+                    
+                    // Re-filter and render (preserves filter!)
+                    filterCRMLeads();
+                    alert("Estado actualizado masivamente con éxito.");
+                } else {
+                    alert("Error al actualizar estados");
+                }
+            } catch(e) {
+                console.error("Error bulk updating statuses:", e);
+                alert("Error de conexión");
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+                updateCRMBulkActionsPanel();
             }
         }
         async function updateLeadAssignment(id, operatorId) {
@@ -1919,6 +2046,18 @@
                     const currentVal = opFilter.value;
                     opFilter.innerHTML = html;
                     if(currentVal) opFilter.value = currentVal;
+                }
+                
+                // Populate Remarketing Operator Filter
+                const rmOpFilter = document.getElementById('rm-filter-operator');
+                if (rmOpFilter) {
+                    let html = '<option value="all">TODOS LOS VEND.</option><option value="unassigned">SIN ASIGNAR</option>';
+                    companyOperators.forEach(op => {
+                        html += `<option value="${op.id}">${op.full_name}</option>`;
+                    });
+                    const currentVal = rmOpFilter.value;
+                    rmOpFilter.innerHTML = html;
+                    if(currentVal) rmOpFilter.value = currentVal;
                 }
             } catch(e) {}
         }
@@ -2053,9 +2192,17 @@
         async function loadRemarketingLeads() {
             const status = document.getElementById('rm-filter-status').value;
             const tag = document.getElementById('rm-filter-tag').value;
+            const df = document.getElementById('rm-filter-date-from')?.value;
+            const dt = document.getElementById('rm-filter-date-to')?.value;
+            const op = document.getElementById('rm-filter-operator')?.value;
+            
+            let url = `/api/remarketing/leads?status=${status}&tag=${tag}`;
+            if (df) url += `&date_from=${df}`;
+            if (dt) url += `&date_to=${dt}`;
+            if (op && op !== 'all') url += `&operator_id=${op}`;
             
             try {
-                const res = await superFetch(`/api/remarketing/leads?status=${status}&tag=${tag}`);
+                const res = await superFetch(url);
                 remarketingLeads = await res.json();
                 filterRemarketingLeads(); // Aplica búsqueda local sobre el resultado
             } catch(e) {

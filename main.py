@@ -1353,6 +1353,10 @@ async def update_lead(user_id: str, lead: LeadUpdateSchema, company_id: Optional
     db.refresh(db_lead)
     return db_lead
 
+class BulkStatusUpdateSchema(BaseModel):
+    user_ids: List[str]
+    status: str
+
 @app.put("/api/users/{user_id}/status")
 def update_user_status(user_id: str, status_data: StatusUpdateSchema, company_id: Optional[str] = None, db: Session = Depends(get_db), current: models.Operator = Depends(get_current_operator)):
     cid = company_id if (company_id and current.role == "super_admin") else current.company_id
@@ -1364,6 +1368,23 @@ def update_user_status(user_id: str, status_data: StatusUpdateSchema, company_id
     user.crm_status = status_data.status
     db.commit()
     return {"status": "ok"}
+
+@app.put("/api/crm/bulk_status")
+def bulk_update_status(data: BulkStatusUpdateSchema, company_id: Optional[str] = None, db: Session = Depends(get_db), current: models.Operator = Depends(get_current_operator)):
+    cid = company_id if (company_id and current.role == "super_admin") else current.company_id
+    
+    query = db.query(models.User).filter(
+        models.User.company_id == cid,
+        models.User.id.in_(data.user_ids)
+    )
+    
+    if current.role == "operador":
+        query = query.filter(models.User.assigned_to == current.id)
+        
+    updated_count = query.update({"crm_status": data.status}, synchronize_session=False)
+    db.commit()
+    
+    return {"status": "ok", "updated": updated_count}
 
 @app.put("/api/users/{user_id}/tags")
 def update_user_tags(user_id: str, tag_data: TagUpdateSchema, company_id: Optional[str] = None, db: Session = Depends(get_db), current: models.Operator = Depends(get_current_operator)):
@@ -1771,6 +1792,9 @@ async def send_whatsapp_cloud_api(phone: str, template_name: str, company_token:
 async def get_remarketing_leads(
     status: str = Query("all"),
     tag: str = Query(""),
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    operator_id: Optional[str] = None,
     db: Session = Depends(get_db),
     current: models.Operator = Depends(get_current_operator)
 ):
@@ -1785,7 +1809,33 @@ async def get_remarketing_leads(
     if tag:
         query = query.filter(models.User.tags.like(f"%{tag}%"))
         
-    leads = query.order_by(models.User.last_activity.desc()).all()
+    if operator_id and operator_id != "all":
+        if operator_id == "manual" or operator_id == "unassigned":
+            query = query.filter(models.User.assigned_to == None)
+        else:
+            try:
+                op_id_int = int(operator_id)
+                query = query.filter(models.User.assigned_to == op_id_int)
+            except ValueError:
+                pass
+
+    if date_from:
+        try:
+            dt_from = datetime.fromisoformat(date_from.replace("Z", "+00:00"))
+            query = query.filter(models.User.created_at >= dt_from)
+        except Exception:
+            pass
+
+    if date_to:
+        try:
+            dt_to = datetime.fromisoformat(date_to.replace("Z", "+00:00"))
+            if "T" not in date_to:
+                dt_to = dt_to + timedelta(hours=23, minutes=59, seconds=59)
+            query = query.filter(models.User.created_at <= dt_to)
+        except Exception:
+            pass
+            
+    leads = query.order_by(models.User.created_at.desc()).all()
     return [{
         "id": l.id,
         "name": l.full_name or l.id,
