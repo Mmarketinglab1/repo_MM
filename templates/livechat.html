@@ -1349,6 +1349,17 @@
                     
                     showView('conversations');
                     connectWebSocket();
+                    
+                    if (!window.fallbackPollingStarted) {
+                        window.fallbackPollingStarted = true;
+                        setInterval(async () => {
+                            if (currentView === 'conversations') {
+                                await loadConversations();
+                                if (activeUserId) await loadMessages();
+                            }
+                        }, 5000);
+                    }
+
                 } else if (res.status === 401) {
                     doLogout();
                 } else {
@@ -1448,10 +1459,20 @@
             renderConversationsList();
         }
 
+        let lastConversationsHash = '';
         async function loadConversations() {
-            const res = await superFetch('/api/conversations?limit=200');
-            currentConversationsData = await res.json();
-            renderConversationsList();
+            try {
+                const res = await superFetch('/api/conversations?limit=200');
+                if (res.ok) {
+                    const newData = await res.json();
+                    const newHash = JSON.stringify(newData);
+                    if (newHash !== lastConversationsHash) {
+                        currentConversationsData = newData;
+                        renderConversationsList();
+                        lastConversationsHash = newHash;
+                    }
+                }
+            } catch (error) { console.error("Error loading conversations", error); }
         }
         function getSafeLastReadMap() {
             try { return JSON.parse(localStorage.getItem('lastReadMap') || '{}'); } 
@@ -1525,6 +1546,7 @@
             activeUserBotActive = (isBotActive !== undefined) ? isBotActive : true;
             activeUser24hClosed = (is24hClosed !== undefined) ? is24hClosed : true;
             lastMsgCount = 0;
+            lastMessagesHash = ''; // Reset hash for new chat
             currentTags = tagsStr ? tagsStr.split(',').filter(t => t.trim()) : [];
             
             const lastReadMap = getSafeLastReadMap();
@@ -1718,6 +1740,7 @@
             });
             loadCRMLeads(); // Sincronizar CRM
         }
+        let lastMessagesHash = '';
 
         async function loadMessages() {
             if (!activeUserId) return;
@@ -1728,6 +1751,11 @@
             
             // Si el operador cambió de chat mientras cargaban los mensajes, descartamos el renderizado
             if (activeUserId !== currentRequestedUser) return;
+            
+            const newHash = JSON.stringify(messages);
+            if (newHash === lastMessagesHash) return; // Evitar parpadeos y perder foco
+            lastMessagesHash = newHash;
+
             
             const window = document.getElementById('chat-window');
             
