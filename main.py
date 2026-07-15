@@ -52,8 +52,9 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 async def lead_status_automation():
     """
     Proceso en segundo plano que revisa la inactividad de los leads y actualiza su estado.
-    - No Contactado -> Informar Estado (después de 3 días)
-    - Contactado -> En Proceso (después de 8 días)
+    - Contactado -> REV1 (después de 3 días)
+    - RECONTACTADO -> REV2 (después de 3 días)
+    - Activo -> REV ACTIVO (después de 7 días)
     """
     while True:
         try:
@@ -61,21 +62,44 @@ async def lead_status_automation():
             db = SessionLocal()
             try:
                 now = datetime.utcnow()
-                
-                # 1. Contactado o En Proceso -> Informar Estado (3 días = 72 horas)
                 three_days_ago = now - timedelta(days=3)
-                leads_to_inform = db.query(models.User).filter(
-                    models.User.crm_status.in_(["Contactado", "En Proceso"]),
+                seven_days_ago = now - timedelta(days=7)
+                
+                total_updated = 0
+                
+                # Regla 1: Contactado -> REV1 (3 días)
+                leads_1 = db.query(models.User).filter(
+                    models.User.crm_status == "Contactado",
                     models.User.last_activity <= three_days_ago
                 ).all()
+                for lead in leads_1:
+                    print(f"[AUTOMATION] Lead {lead.id}: Contactado -> REV1", flush=True)
+                    lead.crm_status = "REV1"
+                    total_updated += 1
+                    
+                # Regla 2: RECONTACTADO -> REV2 (3 días)
+                leads_2 = db.query(models.User).filter(
+                    models.User.crm_status == "RECONTACTADO",
+                    models.User.last_activity <= three_days_ago
+                ).all()
+                for lead in leads_2:
+                    print(f"[AUTOMATION] Lead {lead.id}: RECONTACTADO -> REV2", flush=True)
+                    lead.crm_status = "REV2"
+                    total_updated += 1
+                    
+                # Regla 3: Activo -> REV ACTIVO (7 días)
+                leads_3 = db.query(models.User).filter(
+                    models.User.crm_status == "Activo",
+                    models.User.last_activity <= seven_days_ago
+                ).all()
+                for lead in leads_3:
+                    print(f"[AUTOMATION] Lead {lead.id}: Activo -> REV ACTIVO", flush=True)
+                    lead.crm_status = "REV ACTIVO"
+                    total_updated += 1
                 
-                for lead in leads_to_inform:
-                    print(f"[AUTOMATION] Lead {lead.id} ({lead.full_name}): {lead.crm_status} -> Informar Estado", flush=True)
-                    lead.crm_status = "Informar Estado"
-                
-                if leads_to_inform:
+                if total_updated > 0:
                     db.commit()
-                    print(f"[AUTOMATION] {len(leads_to_inform)} estados actualizados.", flush=True)
+                    print(f"[AUTOMATION] {total_updated} estados actualizados.", flush=True)
                 else:
                     print("[AUTOMATION] No se detectaron leads para actualizar.", flush=True)
                     
@@ -972,12 +996,12 @@ async def receive_user_msg(request: Request, token: str, msg: MessageSchema, db:
         if not company: return {"status": "error", "detail": "Token inválido"}
 
         u_id = clean_user_id(msg.user_id)
-        user = db.query(models.User).filter(models.User.id == u_id, models.User.company_id == company.id).first()
+        user = db.query(models.User).filter(models.User.phone == u_id, models.User.company_id == company.id).first()
         if not user:
             assigned_op_id = get_next_operator_id(company.id, db)
 
             user = models.User(
-                id=u_id, 
+                id=f"{company.id}_{u_id}", 
                 company_id=company.id,
                 full_name=msg.user_name if msg.user_name else "Cliente WhatsApp",
                 phone=u_id,
@@ -1032,7 +1056,7 @@ async def receive_user_msg(request: Request, token: str, msg: MessageSchema, db:
             final_sender = "user"
 
         new_msg = models.Message(
-            company_id=company.id, user_id=u_id, sender=final_sender, text=text_content,
+            company_id=company.id, user_id=user.id, sender=final_sender, text=text_content,
             timestamp_ms=int(time.time() * 1000)
         )
         db.add(new_msg)
@@ -1059,9 +1083,9 @@ async def receive_user_msg(request: Request, token: str, msg: MessageSchema, db:
                 
         db.commit() # Guardamos actividad inmediatamente
         
-        await manager.broadcast({"event": "new_message", "user_id": u_id, "text": new_msg.text, "sender": final_sender}, company.id)
+        await manager.broadcast({"event": "new_message", "user_id": user.id, "text": new_msg.text, "sender": final_sender}, company.id)
         # Forzar actualización de posición en la lista (orden cronológico)
-        await manager.broadcast({"event": "bot_status_change", "user_id": u_id, "is_bot_active": user.is_bot_active}, company.id)
+        await manager.broadcast({"event": "bot_status_change", "user_id": user.id, "is_bot_active": user.is_bot_active}, company.id)
         
         return {"status": "ok", "is_bot_active": user.is_bot_active}
     except Exception as e:
@@ -1075,7 +1099,7 @@ async def n8n_handoff(request: Request, token: str, data: HandoffSchema, db: Ses
     if not company: return {"status": "error"}
     
     u_id = str(data.user_id).replace('"', '').replace("'", "").strip()
-    user = db.query(models.User).filter(models.User.id == u_id, models.User.company_id == company.id).first()
+    user = db.query(models.User).filter(models.User.phone == u_id, models.User.company_id == company.id).first()
     if not user: return {"status": "error", "detail": "Lead no encontrado"}
     
     # 1. Cambiar estado
@@ -1141,25 +1165,40 @@ async def receive_bot_msg(request: Request, token: str, msg: MessageSchema, db: 
     if not company: return {"status": "error", "detail": "Token inválido"}
     u_id = clean_user_id(msg.user_id)
     text_content = msg.text if msg.text is not None else ""
+    
+    # Necesitamos el ID real del usuario en la base de datos
+    db_user = db.query(models.User).filter(models.User.phone == u_id, models.User.company_id == company.id).first()
+    if not db_user:
+        assigned_op_id = get_next_operator_id(company.id, db)
+        db_user = models.User(
+            id=f"{company.id}_{u_id}",
+            company_id=company.id,
+            full_name="Cliente WhatsApp",
+            phone=u_id,
+            assigned_to=assigned_op_id
+        )
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+        
+    real_user_id = db_user.id
+    
     new_msg = models.Message(
-        company_id=company.id, user_id=u_id, sender="bot", text=text_content,
+        company_id=company.id, user_id=real_user_id, sender="bot", text=text_content,
         timestamp_ms=int(msg.timestamp) if (msg.timestamp and str(msg.timestamp).isdigit()) else int(time.time() * 1000)
     )
     db.add(new_msg)
     
     # Actualizar última actividad del usuario
-    db_user = db.query(models.User).filter(models.User.id == u_id, models.User.company_id == company.id).first()
-    if db_user:
-        db_user.last_activity = func.now()
-        
-        if msg.intencion_asesor and str(msg.intencion_asesor).strip().upper() not in ["NO", "FALSE", "0", ""]:
-            current_tags = db_user.tags or ""
-            if "Solicita asesor" not in current_tags:
-                db_user.tags = current_tags + ", Solicita asesor" if current_tags else "Solicita asesor"
-            db_user.crm_status = "Solicita Operador"
-                
+    db_user.last_activity = func.now()
+    if msg.intencion_asesor and str(msg.intencion_asesor).strip().upper() not in ["NO", "FALSE", "0", ""]:
+        current_tags = db_user.tags or ""
+        if "Solicita asesor" not in current_tags:
+            db_user.tags = current_tags + ", Solicita asesor" if current_tags else "Solicita asesor"
+        db_user.crm_status = "Solicita Operador"
+            
     db.commit()
-    await manager.broadcast({"event": "new_message", "user_id": u_id, "text": text_content, "sender": "bot"}, company.id)
+    await manager.broadcast({"event": "new_message", "user_id": real_user_id, "text": text_content, "sender": "bot"}, company.id)
     return {"status": "ok"}
 
 # --- CONVERSACIONES & CRM ---
@@ -1170,6 +1209,7 @@ def get_conversations(
     date_from: Optional[str] = None,
     date_to: Optional[str] = None,
     operator_id: Optional[str] = None,
+    limit: Optional[int] = None,
     db: Session = Depends(get_db), 
     current: Any = Depends(get_current_operator)
 ):
@@ -1217,7 +1257,12 @@ def get_conversations(
         except Exception:
             pass
 
-    users = query.all()
+    # Para que la carga sea super rápida en el panel de chats, ordenamos por última actividad y limitamos
+    query = query.order_by(models.User.last_activity.desc().nulls_last())
+    if limit:
+        users = query.limit(limit).all()
+    else:
+        users = query.all()
     
     # Obtener el último mensaje del usuario para la ventana de 24hs y para el orden
     user_ids = [u.id for u in users]
@@ -2023,6 +2068,13 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
 @app.get("/", response_class=HTMLResponse)
 def root():
     with open("templates/livechat.html", "r", encoding="utf-8") as f:
-        return HTMLResponse(content=f.read())
+        return HTMLResponse(
+            content=f.read(),
+            headers={
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0"
+            }
+        )
 
   

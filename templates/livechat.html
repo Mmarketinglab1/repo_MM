@@ -29,15 +29,20 @@
         .status-esperando { background-color: #f1f5f9 !important; color: #64748b !important; border-color: #e2e8f0 !important; }
         .status-no-contactado { background-color: #fef2f2 !important; color: #dc2626 !important; border-color: #fecaca !important; }
         .status-mansi { background-color: #1e293b !important; color: #f8fafc !important; border-color: #0f172a !important; }
-        .status-pendiente { background-color: #fffbeb !important; color: #d97706 !important; border-color: #fde68a !important; }
-        .status-no-contesto-wa { background-color: #f8fafc !important; color: #475569 !important; border-color: #e2e8f0 !important; }
-        .status-informar-estado { background-color: #eff6ff !important; color: #2563eb !important; border-color: #bfdbfe !important; }
-        .status-hablo-no-cerro { background-color: #faf5ff !important; color: #9333ea !important; border-color: #e9d5ff !important; }
-        .status-en-proceso { background-color: #eef2ff !important; color: #4f46e5 !important; border-color: #c7d2fe !important; }
+        .status-activo { background-color: #fffbeb !important; color: #d97706 !important; border-color: #fde68a !important; }
+        .status-rev1 { background-color: #f8fafc !important; color: #475569 !important; border-color: #e2e8f0 !important; }
+        .status-rev2 { background-color: #eff6ff !important; color: #2563eb !important; border-color: #bfdbfe !important; }
+        .status-recontactado { background-color: #faf5ff !important; color: #9333ea !important; border-color: #e9d5ff !important; }
+        .status-rev-activo { background-color: #eef2ff !important; color: #4f46e5 !important; border-color: #c7d2fe !important; }
         .status-contactado { background-color: #f0fdf4 !important; color: #16a34a !important; border-color: #bbf7d0 !important; }
-        .status-interesado { background-color: #fff7ed !important; color: #ea580c !important; border-color: #fed7aa !important; }
+        .status-sin-respuesta { background-color: #fff7ed !important; color: #ea580c !important; border-color: #fed7aa !important; }
         .status-remarketing-0 { background-color: #fdf2f8 !important; color: #db2777 !important; border-color: #fbcfe8 !important; }
+        .status-remarketing-1 { background-color: #fce7f3 !important; color: #be185d !important; border-color: #fbcfe8 !important; }
+        .status-lead-calificado { background-color: #dcfce7 !important; color: #15803d !important; border-color: #bbf7d0 !important; }
+        .status-lead-no-calificado { background-color: #fee2e2 !important; color: #b91c1c !important; border-color: #fecaca !important; }
+        .status-inactivo { background-color: #f1f5f9 !important; color: #475569 !important; border-color: #cbd5e1 !important; }
         .status-remarketing-0-dark { background-color: #db2777 !important; color: white !important; }
+        .status-remarketing-1-dark { background-color: #be185d !important; color: white !important; }
 
         .btn-zoho { font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.5rem; }
         .btn-zoho:active { transform: scale(0.98); }
@@ -262,13 +267,37 @@
                         </button>
                         <div>
                             <h2 id="chat-title" class="text-lg md:text-xl font-black text-slate-800">Selecciona un Chat</h2>
-                            <div id="chat-meta" class="flex items-center gap-3 mt-1">
+                            <div id="chat-meta" class="flex items-center gap-3 mt-1 flex-wrap">
                                 <p id="chat-phone" class="text-xs text-blue-600 font-bold"></p>
                                 <div id="chat-tags-display" class="flex gap-1"></div>
+                                <select id="conv-status-select" onchange="updateChatStatusFromConv(this.value)" class="text-[10px] font-bold text-slate-600 bg-slate-50 border border-slate-200 rounded px-2 py-1 outline-none hidden appearance-none cursor-pointer">
+                                    <option value="Solicita Operador">SOLICITA OPERADOR</option>
+                                    <option value="No Contactado">NO CONTACTADO</option>
+                                    <option value="MANSI">MANSI</option>
+                                    <option value="Activo">ACTIVO</option>
+                                    <option value="REV1">REV1</option>
+                                    <option value="REV2">REV2</option>
+                                    <option value="RECONTACTADO">RECONTACTADO</option>
+                                    <option value="REV ACTIVO">REV ACTIVO</option>
+                                    <option value="Contactado">CONTACTADO</option>
+                                    <option value="SIN RESPUESTA">SIN RESPUESTA</option>
+                                    <option value="LEAD CALIFICADO">LEAD CALIFICADO</option>
+                                    <option value="LEAD NO CALIFICADO">LEAD NO CALIFICADO</option>
+                                    <option value="INACTIVO">INACTIVO</option>
+                                    <option value="Re Marketing 0">RE MARKETING 0</option>
+                                    <option value="Re Marketing 1">RE MARKETING 1</option>
+                                    <option value="Vendido">VENDIDO</option>
+                                </select>
+                                <select id="conv-operator-select" onchange="updateChatOperatorFromConv(this.value)" class="text-[10px] font-bold text-slate-600 bg-slate-50 border border-slate-200 rounded px-2 py-1 outline-none hidden appearance-none cursor-pointer max-w-[120px] truncate">
+                                    <option value="">SIN ASIGNAR</option>
+                                </select>
                             </div>
                         </div>
                     </div>
                      <div class="flex gap-2 items-center">
+                          <a id="conv-wa-btn" href="#" target="_blank" class="w-8 h-8 flex items-center justify-center rounded-lg text-emerald-600 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-all shadow-sm hidden" title="Abrir en WhatsApp Web">
+                              <i class="fab fa-whatsapp"></i>
+                          </a>
                           <div id="bot-status-badge" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-all duration-300">
                               <i class="fas fa-robot"></i> <span id="bot-status-text">Bot</span>
                           </div>
@@ -354,14 +383,18 @@
                             <option value="Solicita Operador">SOLICITA OPERADOR</option>
                             <option value="No Contactado">NO CONTACTADO</option>
                             <option value="MANSI">MANSI</option>
-                            <option value="Re Marketing 0">RE MARKETING 0</option>
-                            <option value="Pendiente">PENDIENTE</option>
-                            <option value="No Contesto WA">NO CONTESTO WA</option>
-                            <option value="Informar Estado">INFORMAR ESTADO</option>
-                            <option value="Hablo y No Cerro">HABLO Y NO CERRO</option>
-                            <option value="En Proceso">EN PROCESO</option>
+                            <option value="Activo">ACTIVO</option>
+                            <option value="REV1">REV1</option>
+                            <option value="REV2">REV2</option>
+                            <option value="RECONTACTADO">RECONTACTADO</option>
+                            <option value="REV ACTIVO">REV ACTIVO</option>
                             <option value="Contactado">CONTACTADO</option>
-                            <option value="Interesado">INTERESADO</option>
+                            <option value="SIN RESPUESTA">SIN RESPUESTA</option>
+                            <option value="LEAD CALIFICADO">LEAD CALIFICADO</option>
+                            <option value="LEAD NO CALIFICADO">LEAD NO CALIFICADO</option>
+                            <option value="INACTIVO">INACTIVO</option>
+                            <option value="Re Marketing 0">RE MARKETING 0</option>
+                            <option value="Re Marketing 1">RE MARKETING 1</option>
                             <option value="Vendido">VENDIDO</option>
                         </select>
 
@@ -408,14 +441,18 @@
                                     <option value="Solicita Operador">SOLICITA OPERADOR</option>
                                     <option value="No Contactado">NO CONTACTADO</option>
                                     <option value="MANSI">MANSI</option>
-                                    <option value="Re Marketing 0">RE MARKETING 0</option>
-                                    <option value="Pendiente">PENDIENTE</option>
-                                    <option value="No Contesto WA">NO CONTESTO WA</option>
-                                    <option value="Informar Estado">INFORMAR ESTADO</option>
-                                    <option value="Hablo y No Cerro">HABLO Y NO CERRO</option>
-                                    <option value="En Proceso">EN PROCESO</option>
+                                    <option value="Activo">ACTIVO</option>
+                                    <option value="REV1">REV1</option>
+                                    <option value="REV2">REV2</option>
+                                    <option value="RECONTACTADO">RECONTACTADO</option>
+                                    <option value="REV ACTIVO">REV ACTIVO</option>
                                     <option value="Contactado">CONTACTADO</option>
-                                    <option value="Interesado">INTERESADO</option>
+                                    <option value="SIN RESPUESTA">SIN RESPUESTA</option>
+                                    <option value="LEAD CALIFICADO">LEAD CALIFICADO</option>
+                                    <option value="LEAD NO CALIFICADO">LEAD NO CALIFICADO</option>
+                                    <option value="INACTIVO">INACTIVO</option>
+                                    <option value="Re Marketing 0">RE MARKETING 0</option>
+                                    <option value="Re Marketing 1">RE MARKETING 1</option>
                                     <option value="Vendido">VENDIDO</option>
                                 </select>
                                 <button onclick="applyBulkCRMStatus()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-[10px] font-bold transition shadow-sm">Aplicar</button>
@@ -442,6 +479,16 @@
                             </thead>
                             <tbody id="crm-table-body"></tbody>
                         </table>
+                    </div>
+                    <!-- PAGINATION CONTROLS -->
+                    <div id="crm-pagination-controls" class="flex items-center justify-between px-6 py-4 bg-slate-50 border-t border-slate-200">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Página <span id="crm-current-page" class="text-slate-800">1</span> de <span id="crm-total-pages" class="text-slate-800">1</span></span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="changeCRMPage(-1)" class="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-[10px] font-black uppercase hover:bg-slate-100 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed" id="crm-btn-prev">Anterior</button>
+                            <button onclick="changeCRMPage(1)" class="px-4 py-2 bg-blue-50 border border-blue-200 text-blue-600 rounded-xl text-[10px] font-black uppercase hover:bg-blue-100 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed" id="crm-btn-next">Siguiente</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -703,14 +750,18 @@
                                 <option value="Solicita Operador">SOLICITA OPERADOR</option>
                                 <option value="No Contactado">NO CONTACTADO</option>
                                 <option value="MANSI">MANSI</option>
-                                <option value="Re Marketing 0">RE MARKETING 0</option>
-                                <option value="Pendiente">PENDIENTE</option>
-                                <option value="No Contesto WA">NO CONTESTO WA</option>
-                                <option value="Informar Estado">INFORMAR ESTADO</option>
-                                <option value="Hablo y No Cerro">HABLO Y NO CERRO</option>
-                                <option value="En Proceso">EN PROCESO</option>
+                                <option value="Activo">ACTIVO</option>
+                                <option value="REV1">REV1</option>
+                                <option value="REV2">REV2</option>
+                                <option value="RECONTACTADO">RECONTACTADO</option>
+                                <option value="REV ACTIVO">REV ACTIVO</option>
                                 <option value="Contactado">CONTACTADO</option>
-                                <option value="Interesado">INTERESADO</option>
+                                <option value="SIN RESPUESTA">SIN RESPUESTA</option>
+                                <option value="LEAD CALIFICADO">LEAD CALIFICADO</option>
+                                <option value="LEAD NO CALIFICADO">LEAD NO CALIFICADO</option>
+                                <option value="INACTIVO">INACTIVO</option>
+                                <option value="Re Marketing 0">RE MARKETING 0</option>
+                                <option value="Re Marketing 1">RE MARKETING 1</option>
                                 <option value="Vendido">VENDIDO</option>
                             </select>
                             <input type="date" id="rm-filter-date-from" onchange="loadRemarketingLeads()" class="h-9 px-3 rounded-lg border border-slate-200 focus:border-purple-500 outline-none text-xs text-slate-600 bg-slate-50" title="Desde">
@@ -993,14 +1044,18 @@
                             <option value="Solicita Operador">Solicita Operador</option>
                             <option value="No Contactado">No Contactado</option>
                             <option value="MANSI">MANSI</option>
-                            <option value="Re Marketing 0">Re Marketing 0</option>
-                            <option value="Pendiente">Pendiente</option>
-                            <option value="No Contesto WA">No Contesto WA</option>
-                            <option value="Informar Estado">Informar Estado</option>
-                            <option value="Hablo y No Cerro">Hablo y No Cerro</option>
-                            <option value="En Proceso">En Proceso</option>
+                            <option value="Activo">Activo</option>
+                            <option value="REV1">REV1</option>
+                            <option value="REV2">REV2</option>
+                            <option value="RECONTACTADO">RECONTACTADO</option>
+                            <option value="REV ACTIVO">REV ACTIVO</option>
                             <option value="Contactado">Contactado</option>
-                            <option value="Interesado">Interesado</option>
+                            <option value="SIN RESPUESTA">SIN RESPUESTA</option>
+                            <option value="LEAD CALIFICADO">LEAD CALIFICADO</option>
+                            <option value="LEAD NO CALIFICADO">LEAD NO CALIFICADO</option>
+                            <option value="INACTIVO">INACTIVO</option>
+                            <option value="Re Marketing 0">Re Marketing 0</option>
+                            <option value="Re Marketing 1">Re Marketing 1</option>
                             <option value="Vendido">Vendido</option>
                         </select>
                     </div>
@@ -1185,9 +1240,18 @@
                 'Solicita Operador': 'status-esperando',
                 'No Contactado': 'status-no-contactado',
                 'MANSI': 'status-mansi',
-                'Re Marketing 0': 'status-remarketing-0',
+                'Activo': 'status-activo',
+                'REV1': 'status-rev1',
+                'REV2': 'status-rev2',
+                'RECONTACTADO': 'status-recontactado',
+                'REV ACTIVO': 'status-rev-activo',
                 'Contactado': 'status-contactado',
-                'Interesado': 'status-interesado',
+                'SIN RESPUESTA': 'status-sin-respuesta',
+                'LEAD CALIFICADO': 'status-lead-calificado',
+                'LEAD NO CALIFICADO': 'status-lead-no-calificado',
+                'INACTIVO': 'status-inactivo',
+                'Re Marketing 0': 'status-remarketing-0',
+                'Re Marketing 1': 'status-remarketing-1',
                 'Vendido': 'status-vendido'
             };
             return colors[status] || 'status-no-contactado';
@@ -1385,7 +1449,7 @@
         }
 
         async function loadConversations() {
-            const res = await superFetch('/api/conversations');
+            const res = await superFetch('/api/conversations?limit=200');
             currentConversationsData = await res.json();
             renderConversationsList();
         }
@@ -1453,8 +1517,10 @@
 
         async function selectChat(id, name, phone, tagsStr, isBotActive, is24hClosed) {
             showView('conversations', true); // Cambia a vista chat sin recargar la lista de conversaciones
+            if (window.innerWidth < 768) {
+                openChatMobile();
+            }
             activeUserId = id;
-            openChatMobile(); // Desliza la vista al chat en celulares
             activeUserPhone = phone;
             activeUserBotActive = (isBotActive !== undefined) ? isBotActive : true;
             activeUser24hClosed = (is24hClosed !== undefined) ? is24hClosed : true;
@@ -1466,11 +1532,34 @@
             saveSafeLastReadMap(lastReadMap);
             renderConversationsList();
 
-            document.getElementById('chat-header-info').classList.remove('hidden');
+            document.getElementById('chat-header-info')?.classList.remove('hidden');
             document.getElementById('chat-input-area').classList.remove('hidden');
             document.getElementById('chat-input-area').classList.add('flex');
             document.getElementById('chat-title').innerText = name;
             document.getElementById('chat-phone').innerText = phone;
+            
+            // Poblar selects de estado y operador
+            const conv = currentConversationsData.find(c => c.id === id);
+            if (conv) {
+                const statusSel = document.getElementById('conv-status-select');
+                if (statusSel) {
+                    statusSel.value = conv.status || "No Contactado";
+                    statusSel.classList.remove('hidden');
+                }
+                const opSel = document.getElementById('conv-operator-select');
+                if (opSel) {
+                    opSel.innerHTML = '<option value="">SIN ASIGNAR</option>' + companyOperators.map(o => `<option value="${o.id}">${o.full_name}</option>`).join('');
+                    opSel.value = conv.assigned_to || "";
+                    opSel.classList.remove('hidden');
+                }
+            }
+            
+            // Poblar enlace de WhatsApp
+            const waBtn = document.getElementById('conv-wa-btn');
+            if (waBtn && phone) {
+                waBtn.href = `https://wa.me/${phone.replace(/[^0-9]/g, '')}`;
+                waBtn.classList.remove('hidden');
+            }
             
             // Mostrar indicador de carga visualmente
             document.getElementById('chat-window').innerHTML = '<div class="flex h-full items-center justify-center text-slate-300 text-xs"><i class="fas fa-circle-notch fa-spin mr-2"></i> Cargando mensajes...</div>';
@@ -1480,6 +1569,60 @@
             render24hWarning();
             loadMessages();
             loadConversations(); // Para marcar el seleccionado
+        }
+
+        async function updateChatStatusFromConv(newStatus) {
+            if(!activeUserId) return;
+            const res = await superFetch('/api/users/' + activeUserId + '/status', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus })
+            });
+            if (res.ok) {
+                // Update local object
+                const conv = currentConversationsData.find(c => c.id === activeUserId);
+                if (conv) conv.status = newStatus;
+                const lead = crmLeads.find(l => l.id === activeUserId);
+                if (lead) lead.status = newStatus;
+                
+                // Show a tiny feedback
+                const sel = document.getElementById('conv-status-select');
+                if(sel) {
+                    const originalBg = sel.className;
+                    sel.classList.add('bg-green-100', 'text-green-800');
+                    setTimeout(() => sel.className = originalBg, 1000);
+                }
+                
+                if (typeof filterCRMLeads === 'function') filterCRMLeads();
+            }
+        }
+
+        async function updateChatOperatorFromConv(operatorId) {
+            if(!activeUserId) return;
+            const res = await superFetch('/api/leads/' + activeUserId + '/assign', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ operator_id: operatorId ? parseInt(operatorId) : null })
+            });
+            if (res.ok) {
+                // Update local object
+                const conv = currentConversationsData.find(c => c.id === activeUserId);
+                if (conv) {
+                    conv.assigned_to = operatorId ? parseInt(operatorId) : null;
+                }
+                const lead = crmLeads.find(l => l.id === activeUserId);
+                if(lead) lead.assigned_to = operatorId ? parseInt(operatorId) : null;
+                
+                // Show a tiny feedback
+                const sel = document.getElementById('conv-operator-select');
+                if(sel) {
+                    const originalBg = sel.className;
+                    sel.classList.add('bg-green-100', 'text-green-800');
+                    setTimeout(() => sel.className = originalBg, 1000);
+                }
+                
+                if (typeof filterCRMLeads === 'function') filterCRMLeads();
+            }
         }
 
         function render24hWarning() {
@@ -1689,6 +1832,14 @@
             filterCRMLeads();
         }
 
+        let currentCrmPage = 1;
+        const CRM_PAGE_SIZE = 50;
+
+        function changeCRMPage(delta) {
+            currentCrmPage += delta;
+            filterCRMLeads();
+        }
+
         function filterCRMLeads() {
             const query = document.getElementById('crm-search').value.toLowerCase().trim();
             const statusFilter = document.getElementById('crm-filter-status').value;
@@ -1717,7 +1868,22 @@
             document.getElementById('crm-count-total').innerText = crmLeads.length;
             
             updateCRMBulkActionsPanel();
-            renderCRMTable(filtered);
+            
+            // PAGINATION LOGIC
+            const totalPages = Math.ceil(filtered.length / CRM_PAGE_SIZE) || 1;
+            if (currentCrmPage > totalPages) currentCrmPage = totalPages;
+            if (currentCrmPage < 1) currentCrmPage = 1;
+            
+            document.getElementById('crm-current-page').innerText = currentCrmPage;
+            document.getElementById('crm-total-pages').innerText = totalPages;
+            
+            document.getElementById('crm-btn-prev').disabled = currentCrmPage === 1;
+            document.getElementById('crm-btn-next').disabled = currentCrmPage === totalPages;
+            
+            const startIdx = (currentCrmPage - 1) * CRM_PAGE_SIZE;
+            const pagedLeads = filtered.slice(startIdx, startIdx + CRM_PAGE_SIZE);
+            
+            renderCRMTable(pagedLeads);
         }
 
         function renderCRMTable(leads) {
@@ -1736,14 +1902,18 @@
                     'Solicita Operador': 'status-esperando',
                     'No Contactado': 'status-no-contactado',
                     'MANSI': 'status-mansi',
-                    'Re Marketing 0': 'status-remarketing-0',
-                    'Pendiente': 'status-pendiente',
-                    'No Contesto WA': 'status-no-contesto-wa',
-                    'Informar Estado': 'status-informar-estado',
-                    'Hablo y No Cerro': 'status-hablo-no-cerro',
-                    'En Proceso': 'status-en-proceso',
+                    'Activo': 'status-activo',
+                    'REV1': 'status-rev1',
+                    'REV2': 'status-rev2',
+                    'RECONTACTADO': 'status-recontactado',
+                    'REV ACTIVO': 'status-rev-activo',
                     'Contactado': 'status-contactado',
-                    'Interesado': 'status-interesado',
+                    'SIN RESPUESTA': 'status-sin-respuesta',
+                    'LEAD CALIFICADO': 'status-lead-calificado',
+                    'LEAD NO CALIFICADO': 'status-lead-no-calificado',
+                    'INACTIVO': 'status-inactivo',
+                    'Re Marketing 0': 'status-remarketing-0',
+                    'Re Marketing 1': 'status-remarketing-1',
                     'Vendido': 'status-vendido'
                 };
                 // Prevenir nulls y normalizar:
@@ -1791,14 +1961,19 @@
                                 class="appearance-none font-bold px-3 py-1 rounded border outline-none bg-white transition-all cursor-pointer ${statusClass}">
                                 <option value="Solicita Operador" ${l.status === 'Solicita Operador' ? 'selected' : ''}>SOLICITA OPERADOR</option>
                                 <option value="No Contactado" ${l.status === 'No Contactado' ? 'selected' : ''}>NO CONTACTADO</option>
-                                <option value="Re Marketing 0" ${l.status === 'Re Marketing 0' ? 'selected' : ''}>RE MARKETING 0</option>
-                                <option value="Pendiente" ${l.status === 'Pendiente' ? 'selected' : ''}>PENDIENTE</option>
-                                <option value="No Contesto WA" ${l.status === 'No Contesto WA' ? 'selected' : ''}>NO CONTESTO WA</option>
-                                <option value="Informar Estado" ${l.status === 'Informar Estado' ? 'selected' : ''}>INFORMAR ESTADO</option>
-                                <option value="Hablo y No Cerro" ${l.status === 'Hablo y No Cerro' ? 'selected' : ''}>HABLO Y NO CERRO</option>
-                                <option value="En Proceso" ${l.status === 'En Proceso' ? 'selected' : ''}>EN PROCESO</option>
+                                <option value="MANSI" ${l.status === 'MANSI' ? 'selected' : ''}>MANSI</option>
+                                <option value="Activo" ${l.status === 'Activo' ? 'selected' : ''}>ACTIVO</option>
+                                <option value="REV1" ${l.status === 'REV1' ? 'selected' : ''}>REV1</option>
+                                <option value="REV2" ${l.status === 'REV2' ? 'selected' : ''}>REV2</option>
+                                <option value="RECONTACTADO" ${l.status === 'RECONTACTADO' ? 'selected' : ''}>RECONTACTADO</option>
+                                <option value="REV ACTIVO" ${l.status === 'REV ACTIVO' ? 'selected' : ''}>REV ACTIVO</option>
                                 <option value="Contactado" ${l.status === 'Contactado' ? 'selected' : ''}>CONTACTADO</option>
-                                <option value="Interesado" ${l.status === 'Interesado' ? 'selected' : ''}>INTERESADO</option>
+                                <option value="SIN RESPUESTA" ${l.status === 'SIN RESPUESTA' ? 'selected' : ''}>SIN RESPUESTA</option>
+                                <option value="LEAD CALIFICADO" ${l.status === 'LEAD CALIFICADO' ? 'selected' : ''}>LEAD CALIFICADO</option>
+                                <option value="LEAD NO CALIFICADO" ${l.status === 'LEAD NO CALIFICADO' ? 'selected' : ''}>LEAD NO CALIFICADO</option>
+                                <option value="INACTIVO" ${l.status === 'INACTIVO' ? 'selected' : ''}>INACTIVO</option>
+                                <option value="Re Marketing 0" ${l.status === 'Re Marketing 0' ? 'selected' : ''}>RE MARKETING 0</option>
+                                <option value="Re Marketing 1" ${l.status === 'Re Marketing 1' ? 'selected' : ''}>RE MARKETING 1</option>
                                 <option value="Vendido" ${l.status === 'Vendido' ? 'selected' : ''}>VENDIDO</option>
                             </select>
                         </div>
