@@ -431,12 +431,18 @@ async def get_current_superadmin(current: models.Operator = Depends(get_current_
 
 def clean_user_id(uid: Any) -> str:
     if uid is None: return ""
-    # Eliminar símbolos comunes y espacios para que el ID sea consistente
-    s = str(uid).replace('"', '').replace("'", "").replace("+", "").replace("-", "").replace(" ", "").strip()
-    # Si viene con @s.whatsapp.net lo quitamos (aunque n8n ya debería hacerlo)
+    s = str(uid).strip()
+    
+    # Si viene con @s.whatsapp.net lo quitamos
     if "@" in s:
         s = s.split("@")[0]
-    return s
+        
+    if "_" in s:
+        parts = s.split("_", 1)
+        phone = parts[1].replace('"', '').replace("'", "").replace("+", "").replace("-", "").replace(" ", "")
+        return f"{parts[0]}_{phone}"
+    else:
+        return s.replace('"', '').replace("'", "").replace("+", "").replace("-", "").replace(" ", "")
 
 # --- SCHEMAS ---
 
