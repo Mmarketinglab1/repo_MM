@@ -325,9 +325,9 @@
                         <i class="fas fa-exclamation-triangle text-amber-500"></i>
                         <span><strong>Ventana de 24h cerrada.</strong> Los mensajes libres fallarán si WhatsApp no lo permite (Usa Plantillas).</span>
                     </div>
-                    <div class="p-3 md:p-5 flex items-center gap-2 md:gap-4">
-                        <input type="text" id="message-input" class="flex-1 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 md:px-6 md:py-4 text-sm focus:ring-2 focus:ring-amber-500/20 transition outline-none" placeholder="Escribe un mensaje..." onkeypress="if(event.key === 'Enter') sendMessage()">
-                        <button id="btn-send-msg" onclick="sendMessage()" class="bg-blue-600 hover:bg-blue-700 text-white w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-2xl shadow-xl shadow-blue-200 flex items-center justify-center transition active:scale-95">
+                    <div class="p-3 md:p-5 flex items-end gap-2 md:gap-4">
+                        <textarea id="message-input" rows="1" class="flex-1 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 md:px-6 md:py-3 text-sm focus:ring-2 focus:ring-amber-500/20 transition outline-none resize-none overflow-y-auto max-h-32 leading-relaxed" placeholder="Escribe un mensaje..." onkeydown="handleChatInputKeydown(event)" oninput="autoResizeTextarea(this)"></textarea>
+                        <button id="btn-send-msg" onclick="sendMessage()" class="bg-blue-600 hover:bg-blue-700 text-white w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-2xl shadow-xl shadow-blue-200 flex items-center justify-center transition active:scale-95 mb-0.5">
                             <i class="fas fa-paper-plane text-lg md:text-xl"></i>
                         </button>
                     </div>
@@ -1582,6 +1582,12 @@
                 waBtn.href = `https://wa.me/${phone.replace(/[^0-9]/g, '')}`;
                 waBtn.classList.remove('hidden');
             }
+
+            const msgInput = document.getElementById('message-input');
+            if (msgInput) {
+                msgInput.value = '';
+                msgInput.style.height = 'auto';
+            }
             
             // Mostrar indicador de carga visualmente
             document.getElementById('chat-window').innerHTML = '<div class="flex h-full items-center justify-center text-slate-300 text-xs"><i class="fas fa-circle-notch fa-spin mr-2"></i> Cargando mensajes...</div>';
@@ -1779,7 +1785,7 @@
                 
                 return `
                 <div class="flex flex-col ${isSelf ? 'items-end' : 'items-start'} mb-4">
-                    <div class="${bubbleClass} border px-4 py-2.5 rounded-2xl max-w-[80%] text-sm leading-relaxed shadow-sm">
+                    <div class="${bubbleClass} border px-4 py-2.5 rounded-2xl max-w-[80%] text-sm leading-relaxed shadow-sm whitespace-pre-wrap">
                         ${m.text}
                         <div class="text-[9px] mt-1 opacity-70 text-right font-medium">${timeStr}</div>
                     </div>
@@ -1793,11 +1799,24 @@
             }
         }
 
+        function handleChatInputKeydown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function autoResizeTextarea(el) {
+            el.style.height = 'auto';
+            el.style.height = Math.min(el.scrollHeight, 128) + 'px';
+        }
+
         async function sendMessage() {
             const input = document.getElementById('message-input');
             const text = input.value.trim();
             if (!activeUserId || !text) return;
             input.value = '';
+            input.style.height = 'auto';
             try {
                 await superFetch('/api/messages/send', {
                     method: 'POST',
