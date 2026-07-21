@@ -1527,7 +1527,15 @@
                             ` : ''}
                         </div>
                         <div class="flex gap-1 mt-1 truncate">
-                            ${c.tags ? c.tags.split(',').map(t => `<span class="bg-slate-100 text-slate-400 text-[8px] font-bold px-1.5 py-0.5 rounded border border-slate-200 uppercase">${t}</span>`).join('') : ''}
+                            ${c.tags ? c.tags.split(',').map(t => {
+                                const cleanT = t.trim();
+                                if (!cleanT) return '';
+                                const isDest = cleanT.toLowerCase().startsWith('destino:');
+                                const badgeClass = isDest 
+                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200 font-black' 
+                                    : 'bg-slate-100 text-slate-400 border-slate-200 font-bold';
+                                return `<span class="${badgeClass} text-[8px] px-1.5 py-0.5 rounded border uppercase">${cleanT}</span>`;
+                            }).join('') : ''}
                         </div>
                     </div>
                 </div>
@@ -1707,7 +1715,12 @@
         }
 
         function renderTagsInChat() {
-            document.getElementById('chat-tags-display').innerHTML = currentTags.map(t => `<span class="bg-indigo-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full flex items-center gap-1">${t} <i class="fas fa-times cursor-pointer" onclick="removeTagRecord('${t}')"></i></span>`).join('');
+            document.getElementById('chat-tags-display').innerHTML = currentTags.map(t => {
+                const cleanT = t.trim();
+                const isDest = cleanT.toLowerCase().startsWith('destino:');
+                const bgClass = isDest ? 'bg-emerald-600' : 'bg-indigo-600';
+                return `<span class="${bgClass} text-white text-[9px] font-black px-2 py-0.5 rounded-full flex items-center gap-1">${cleanT} <i class="fas fa-times cursor-pointer" onclick="removeTagRecord('${cleanT}')"></i></span>`;
+            }).join('');
         }
 
         function toggleTagInput() {

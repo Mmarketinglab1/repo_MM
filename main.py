@@ -48,6 +48,93 @@ if not os.path.exists(OS_LOGOS_DIR):
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
+# --- INFERENCIA DE ETIQUETAS DE DESTINO ---
+DESTINATION_MAP = {
+    # Brasil
+    "Destino: Búzios": ["buzios", "búzios", "arraial do cabo", "cabo frio"],
+    "Destino: Florianópolis": ["florianopolis", "florianópolis", "floripa", "bombinhas", "camboriu", "balneario camboriu", "santa catarina"],
+    "Destino: Rio de Janeiro": ["rio de janeiro", "copacabana", "ipanema"],
+    "Destino: Salvador de Bahía": ["salvador de bahia", "salvador de bahía", "bahia", "praia do forte", "porto seguro"],
+    "Destino: Porto de Galinhas": ["porto de galinhas", "maragogi", "recife", "maceio", "maceió"],
+    "Destino: Natal": ["natal", "pipa", "tibau do sul"],
+    "Destino: Fortaleza": ["fortaleza", "jericoacoara", "jeri"],
+    "Destino: Brasil": ["brasil", "brazil"],
+    
+    # Caribe & México
+    "Destino: Cancún": ["cancun", "cancún", "riviera maya", "playa del carmen", "cozumel", "tulum"],
+    "Destino: Punta Cana": ["punta cana", "bayahibe", "bavaro", "bávaro", "república dominicana", "republica dominicana", "santo domingo"],
+    "Destino: San Andrés": ["san andres", "san andrés"],
+    "Destino: Cartagena": ["cartagena"],
+    "Destino: Cuba": ["cuba", "varadero", "la habana", "cayo coco", "cayo largo", "cayo santa maria"],
+    "Destino: Aruba": ["aruba"],
+    "Destino: Curazao": ["curazao", "curacao"],
+    "Destino: Caribe": ["caribe"],
+    
+    # EEUU & Norteamérica
+    "Destino: Disney / Orlando": ["disney", "orlando", "magic kingdom", "universal studios", "universal orlando"],
+    "Destino: Miami": ["miami", "south beach"],
+    "Destino: Nueva York": ["nueva york", "new york", "ny", "nyc"],
+    "Destino: EEUU": ["eeuu", "estados unidos", "usa"],
+    
+    # Europa
+    "Destino: Madrid": ["madrid"],
+    "Destino: Barcelona": ["barcelona"],
+    "Destino: España": ["españa", "espana"],
+    "Destino: Italia": ["italia", "roma", "venecia", "florencia", "milán", "milan"],
+    "Destino: Francia": ["francia", "parís", "paris"],
+    "Destino: Europa": ["europa", "londres", "lisboa", "portugal"],
+    
+    # Argentina (Nacional)
+    "Destino: Bariloche": ["bariloche", "san carlos de bariloche", "cerro catedral"],
+    "Destino: Mendoza": ["mendoza", "san rafael", "potrerillos"],
+    "Destino: Iguazú": ["iguazu", "iguazú", "cataratas"],
+    "Destino: Ushuaia": ["ushuaia", "tierra del fuego", "fin del mundo"],
+    "Destino: El Calafate": ["calafate", "el calafate", "perito moreno"],
+    "Destino: Salta / Jujuy": ["salta", "jujuy", "purmamarca", "tilcara", "cafayate", "norte argentino"],
+    "Destino: Córdoba": ["cordoba", "córdoba", "villa carlos paz", "carlos paz"],
+    "Destino: Puerto Madryn": ["puerto madryn", "madryn", "peninsula valdes"],
+    "Destino: San Martín de los Andes": ["san martin de los andes", "san martín de los andes", "chapelco"],
+    "Destino: Villa La Angostura": ["villa la angostura", "angostura"],
+    "Destino: Mar del Plata": ["mar del plata", "mdq"],
+    
+    # Sudamérica (Otros)
+    "Destino: Chile": ["chile", "santiago de chile", "viña del mar", "valparaiso", "atacama"],
+    "Destino: Perú": ["peru", "perú", "cusco", "cuzco", "machu picchu", "lima"],
+    "Destino: Uruguay": ["uruguay", "punta del este", "colonia del sacramento", "montevideo"],
+    "Destino: Colombia": ["colombia", "medellin", "medellín", "bogota", "bogotá"],
+    
+    # Exóticos & Otros
+    "Destino: Turquía": ["turquia", "turquía", "estambul", "capadocia"],
+    "Destino: Egipto": ["egipto", "el cairo"],
+    "Destino: Dubai": ["dubai", "dubái", "emiratos"],
+    "Destino: Tailandia": ["tailandia", "bangkok", "phuket"],
+    "Destino: Maldivas": ["maldivas"]
+}
+
+_COMPILED_DESTINATION_PATTERNS = []
+for tag_name, keywords in DESTINATION_MAP.items():
+    for kw in keywords:
+        _COMPILED_DESTINATION_PATTERNS.append((kw, len(kw), tag_name))
+_COMPILED_DESTINATION_PATTERNS.sort(key=lambda x: x[1], reverse=True)
+
+def extract_destination_tag(text: str) -> Optional[str]:
+    if not text or not isinstance(text, str):
+        return None
+    text_lower = text.lower()
+    for kw, _, tag_name in _COMPILED_DESTINATION_PATTERNS:
+        pattern = r'(?<![a-záéíóúñ])' + re.escape(kw) + r'(?![a-záéíóúñ])'
+        if re.search(pattern, text_lower):
+            return tag_name
+    return None
+
+def add_destination_tag_to_user(user, dest_tag: str):
+    if not dest_tag or not user:
+        return
+    current_tags = [t.strip() for t in (user.tags or "").split(",") if t.strip()]
+    if dest_tag not in current_tags:
+        current_tags.append(dest_tag)
+        user.tags = ", ".join(current_tags)
+
 # --- AUTOMATIZACION DE ESTADOS ---
 async def lead_status_automation():
     """
@@ -1075,6 +1162,12 @@ async def receive_user_msg(request: Request, token: str, msg: MessageSchema, db:
             if "Solicita asesor" not in current_tags:
                 user.tags = current_tags + ", Solicita asesor" if current_tags else "Solicita asesor"
             user.crm_status = "Solicita Operador"
+
+        # Detección de etiqueta de destino
+        if text_content:
+            dest_tag = extract_destination_tag(text_content)
+            if dest_tag:
+                add_destination_tag_to_user(user, dest_tag)
             
         # Detección de estado MANSI por palabras clave
         if final_sender == "user":
@@ -1108,9 +1201,13 @@ async def n8n_handoff(request: Request, token: str, data: HandoffSchema, db: Ses
     user = db.query(models.User).filter(models.User.phone == u_id, models.User.company_id == company.id).first()
     if not user: return {"status": "error", "detail": "Lead no encontrado"}
     
-    # 1. Cambiar estado
+    # 1. Cambiar estado y agregar observaciones/destino
     user.crm_status = "Solicita Operador"
     user.observations = data.resumen
+    if data.resumen:
+        dest_tag = extract_destination_tag(data.resumen)
+        if dest_tag:
+            add_destination_tag_to_user(user, dest_tag)
     db.commit()
 
     # 2. Notificar por WS a toda la empresa (el frontend filtrará por assigned_to)
@@ -1148,15 +1245,15 @@ async def n8n_handoff(request: Request, token: str, data: HandoffSchema, db: Ses
                     </div>
                 </div>
                 <div style="background: #1E2235; color: #94a3b8; padding: 15px; border-radius: 0 0 12px 12px; text-align: center; font-size: 12px;">
-                    <p style="margin: 0;">LiveChatPro &copy; {datetime.now().year} - Notificación automática</p>
+                    <p style="margin: 0;">Sistema LiveChatPro</p>
                 </div>
             </div>
             """
             try:
-                res = send_email_smtp(op.email, subject, html_body)
-                print(f"[DEBUG] send_email_smtp (handoff) result: {res}", flush=True)
+                send_email_smtp(op.email, subject, html_body)
+                print(f"[DEBUG] Email enviado exitosamente a {op.email}", flush=True)
             except Exception as email_err:
-                print(f"[DEBUG] CRITICAL error calling send_email_smtp (handoff): {email_err}", flush=True)
+                print(f"[DEBUG] Error al enviar email: {email_err}", flush=True)
         else:
             print(f"[DEBUG] No hay email para operador {user.assigned_to}", flush=True)
     else:
@@ -1197,6 +1294,11 @@ async def receive_bot_msg(request: Request, token: str, msg: MessageSchema, db: 
     
     # Actualizar última actividad del usuario
     db_user.last_activity = func.now()
+    if text_content:
+        dest_tag = extract_destination_tag(text_content)
+        if dest_tag:
+            add_destination_tag_to_user(db_user, dest_tag)
+
     if msg.intencion_asesor and str(msg.intencion_asesor).strip().upper() not in ["NO", "FALSE", "0", ""]:
         current_tags = db_user.tags or ""
         if "Solicita asesor" not in current_tags:
