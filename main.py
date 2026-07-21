@@ -96,6 +96,8 @@ DESTINATION_MAP = {
     "Destino: San Martín de los Andes": ["san martin de los andes", "san martín de los andes", "chapelco"],
     "Destino: Villa La Angostura": ["villa la angostura", "angostura"],
     "Destino: Mar del Plata": ["mar del plata", "mdq"],
+    "Destino: Patagonia": ["patagonia"],
+    "Destino: Argentina": ["argentina", "turismo nacional", "paquetes por argentina", "viajar por argentina", "viajes por argentina"],
     
     # Sudamérica (Otros)
     "Destino: Chile": ["chile", "santiago de chile", "viña del mar", "valparaiso", "atacama"],
