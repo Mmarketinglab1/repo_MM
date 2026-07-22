@@ -27,6 +27,8 @@ from email.mime.multipart import MIMEMultipart
 import google.generativeai as genai
 import json
 import uuid
+import re
+
 
 load_dotenv()
 
