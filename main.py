@@ -1447,7 +1447,7 @@ def get_conversations(
         "assigned_to": u.assigned_to,
         "assigned_name": op_map.get(u.assigned_to, "Sin Asignar"),
         "is_bot_active": u.is_bot_active,
-        "is_24h_window_closed": (current_time_ms - last_msg_map.get(u.id, 0)) > window_24h_ms if last_msg_map.get(u.id) else True,
+        "is_24h_window_closed": (current_time_ms - (last_msg_map.get(u.id) or (int(u.created_at.timestamp() * 1000) if hasattr(u, 'created_at') and u.created_at else 0))) > window_24h_ms,
         "created_at": (u.created_at.isoformat() + "Z") if hasattr(u, 'created_at') and u.created_at else None,
         "last_message_text": last_msg_details.get(u.id, {}).get("text", ""),
         "last_message_sender": last_msg_details.get(u.id, {}).get("sender", ""),
