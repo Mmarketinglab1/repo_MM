@@ -401,7 +401,9 @@
                         <div class="flex items-center gap-3 overflow-x-auto w-full md:w-auto">
                             <div class="flex flex-col">
                                 <label class="text-[9px] font-black uppercase text-slate-400 ml-2 mb-1">Etiqueta</label>
-                                <input type="text" id="crm-filter-tag" placeholder="Ej: VIP" oninput="filterCRMLeads()" class="bg-white border border-slate-100 rounded-2xl px-4 py-3 text-sm font-bold text-slate-600 focus:ring-4 focus:ring-blue-500/10 outline-none shadow-sm h-[54px] w-[110px]">
+                                <select id="crm-filter-tag" onchange="filterCRMLeads()" class="bg-white border border-slate-100 rounded-2xl px-4 py-3 text-sm font-bold text-slate-600 focus:ring-4 focus:ring-blue-500/10 outline-none shadow-sm h-[54px] min-w-[110px] w-auto max-w-[200px]">
+                                    <option value="">ETIQUETA (TODAS)</option>
+                                </select>
                             </div>
                             <div class="flex flex-col">
                                 <label class="text-[9px] font-black uppercase text-slate-400 ml-2 mb-1">Desde</label>
@@ -772,7 +774,9 @@
                             </select>
                         </div>
                         <div class="mt-3">
-                            <input type="text" id="rm-filter-tag" placeholder="Filtrar por etiqueta..." oninput="filterRemarketingLeads()" class="w-full md:w-1/3 h-9 px-3 rounded-lg border border-slate-200 focus:border-purple-500 outline-none text-xs bg-slate-50">
+                            <select id="rm-filter-tag" onchange="loadRemarketingLeads()" class="w-full md:w-1/3 h-9 px-3 rounded-lg border border-slate-200 focus:border-purple-500 outline-none text-xs bg-slate-50 text-slate-600">
+                                <option value="">TODAS LAS ETIQUETAS</option>
+                            </select>
                         </div>
                     </div>
 
@@ -1349,6 +1353,7 @@
                     
                     showView('conversations');
                     connectWebSocket();
+                    updateTagDropdowns();
                     
                     if (!window.fallbackPollingStarted) {
                         window.fallbackPollingStarted = true;
@@ -1460,6 +1465,33 @@
         }
 
         let lastConversationsHash = '';
+
+        async function updateTagDropdowns() {
+            try {
+                const res = await superFetch('/api/tags');
+                if (!res.ok) return;
+                const tags = await res.json();
+                
+                const crmSelect = document.getElementById('crm-filter-tag');
+                if (crmSelect) {
+                    const currentVal = crmSelect.value;
+                    const optionsHtml = '<option value="">ETIQUETA (TODAS)</option>' + 
+                                        tags.map(t => `<option value="${t}">${t}</option>`).join('');
+                    crmSelect.innerHTML = optionsHtml;
+                    crmSelect.value = currentVal;
+                }
+                
+                const rmSelect = document.getElementById('rm-filter-tag');
+                if (rmSelect) {
+                    const currentVal = rmSelect.value;
+                    const rmOptionsHtml = '<option value="">TODAS LAS ETIQUETAS</option>' + 
+                                          tags.map(t => `<option value="${t}">${t}</option>`).join('');
+                    rmSelect.innerHTML = rmOptionsHtml;
+                    rmSelect.value = currentVal;
+                }
+            } catch(e) { console.error("Error loading tags", e); }
+        }
+
         async function loadConversations() {
             try {
                 const res = await superFetch('/api/conversations?limit=200');

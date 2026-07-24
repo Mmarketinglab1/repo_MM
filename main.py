@@ -1315,6 +1315,22 @@ async def receive_bot_msg(request: Request, token: str, msg: MessageSchema, db: 
 
 # --- CONVERSACIONES & CRM ---
 
+@app.get("/api/tags")
+def get_tags(
+    db: Session = Depends(get_db),
+    current: models.Operator = Depends(get_current_operator)
+):
+    users = db.query(models.User.tags).filter(models.User.company_id == current.company_id).all()
+    tags_set = set()
+    for (tag_str,) in users:
+        if tag_str:
+            for t in tag_str.split(','):
+                t_clean = t.strip()
+                if t_clean:
+                    tags_set.add(t_clean)
+    return sorted(list(tags_set))
+
+
 @app.get("/api/conversations")
 def get_conversations(
     company_id: Optional[str] = None, 
